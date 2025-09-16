@@ -4,7 +4,7 @@
 .Ruserdata
 *.Rproj
 /.quarto/
-*.gpkg
+
 
 # OS
 .DS_Store
