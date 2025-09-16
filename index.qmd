@@ -10,6 +10,10 @@ format:
       collapsed: false  # Visa ToC utvidgad från start
       smooth_scroll: true  # Mjuk scroll
     toc-title: "Innehåll"  # Rubrik för ToC
+  gfm:
+    output-file: README.md
+    screenshot: true
+    prefer-html: true   # <<-- allows HTML widgets to render as screenshots
 execute:
   echo: false
   warning: false
@@ -28,7 +32,7 @@ source("Script/install_load_packages.R")
 source("Script/settings.R")
 install_and_load()
 settings <- get_settings()
-  
+library(webshot2)
 kommunkod <- settings$kommunkod
 kommuner <- settings$kommuner
 
@@ -39,8 +43,6 @@ try(font_add_google("Source Sans Pro", "sourcesanspro"), silent = TRUE)
 font_add("Arial", "path/to/arial.ttf") # Specify the path if Arial is not system-default
 showtext_auto()
 ```
-
-
 
 ```{r echo = FALSE}
 # läsa in data från boverket 
@@ -239,7 +241,6 @@ För att analysera utvecklingen av upplåtelseformer har data som omfattar småh
 
 ### Regionen som helhet
 
-
 ```{r, fig.cap=''}
 #| fig-cap: ""
 #| label: fig-upplatelser
@@ -299,7 +300,6 @@ För att förstå balansen mellan befolkningsutveckling och bostadsbyggande redo
 
 ### Regionnivå
 
-
 ```{r}
 #| fig-cap: ""
 #| label: fig-nybygg
@@ -311,9 +311,6 @@ knitr::include_graphics("Figurer/nybygg_region.svg")
 In med kommentarer här
 
 ### Kommunnivå
-
-
-
 
 ::: panel-tabset
 ```{r, results='asis'}
@@ -412,7 +409,6 @@ De flesta kommunerna har en basårskvot på 1.6, Håbo och Knivsta sticker ut me
 
 *Kvoterna ovan är avrundade och inte de exakta värdena som använts för att uppskatta bostadsbehovet i varje kommun.*
 
-
 ------------------------------------------------------------------------
 
 Siffrorna som presenteras under varje diagram visar differensen mellan antal nybyggda bostäder och det uppskattade behovet enligt Hyresgästföreningens modell. Ett negativt värde indikerar bostadsbrist, medan ett positivt värde visar att nybyggnationen överstiger behovet.
@@ -507,15 +503,12 @@ Bostadsbrist råder varje gång den gula linjen "Uppskattat bostadsbehov" visar 
 
 För att få en mer detaljerad bild av bostadsmarknaden redovisas upplåtelseformer på DeSo-nivå (Demografiska statistikområden). Kartan visar vilken upplåtelseform som är vanligast i varje område, tillsammans med respektive andel.
 
-
-
 ```{r}
 #| fig-cap: ""
 #| label: fig-deso
 
 deso_upplat()
 ```
-
 
 På en stor del av länets yta så är äganderätt den vanligaste upplåtseformen, bostadsrätter är den vanligaste upplåtelseformen i två DeSo områden i Enköping, ett i Knivsta och Östhammar och i 58 områden i Uppsala vilket kan ses i @tbl-antaldeso.
 
@@ -584,8 +577,6 @@ byggnadsperiod_kommun()
 
 Fritidshusen utgör en betydande del av bostadsbeståndet eftersom de påverkar fastighetsmarknaden och investeringar i länet. Statistiken nedan visar utvecklingen av antalet fritidshus i länet och i respektive kommun mellan 1998 och `r max_ar`. Genom att följa förändringarna över tid blir det möjligt att se skillnader i trender och nivåer mellan kommunerna.
 
-
-
 ## Utvecklingen i länet
 
 ```{r}
@@ -626,8 +617,6 @@ Definitioner:
 -   Kr/kvm/månad: Hyran uttrycks per kvadratmeter bostadsarea och månad
 
 **Datakälla och metodanmärkning:** *Det saknas för denna data i SCB:s databas medianhyra för Tierp år 2017, men eftersom medianhyran i hyreslägenheter i Tierp var 86 kr både 2016 och 2018 så imputeras detta värde in på 2017.*
-
-
 
 ```{r}
 #| fig-cap: ""
