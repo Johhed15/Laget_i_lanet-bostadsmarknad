@@ -10,10 +10,6 @@ format:
       collapsed: false  # Visa ToC utvidgad från start
       smooth_scroll: true  # Mjuk scroll
     toc-title: "Innehåll"  # Rubrik för ToC
-  gfm:
-    output-file: README.md
-    screenshot: true
-    prefer-html: true   # <<-- allows HTML widgets to render as screenshots
 execute:
   echo: false
   warning: false
