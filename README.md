@@ -7,7 +7,7 @@ Detta är ett Quarto-projekt som visualiserar och analyserar bostadsbestånd och
 - `index.qmd` – startsida för webbplatsen
 - `Data/` – alla datakällor
 - `Script/` – R-skript för laddning och bearbetning
-- `Figurer/` och `bilder/` – visualiseringar
+- `Figurer/` – alla visualiseringar utom DeSo-karta
 
 ## Hur man bygger webbplatsen
 
