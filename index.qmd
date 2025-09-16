@@ -1,0 +1,675 @@
+---
+title: "Bostadsbestånd och bostadsmarknad i Uppsala län"
+lang: sv 
+format: 
+  html:
+    self-contained: true
+    language: sv 
+    toc: true  # Innehållsförteckning
+    toc_float: 
+      collapsed: false  # Visa ToC utvidgad från start
+      smooth_scroll: true  # Mjuk scroll
+    toc-title: "Innehåll"  # Rubrik för ToC
+execute:
+  echo: false
+  warning: false
+  message: false
+  error: false
+editor: visual
+---
+
+# Inledning
+
+Här ska antingen en inledning eller kort sammanfattning in!
+
+```{r setup, include = FALSE, message=FALSE, warnings=FALSE}
+# använda paket(plus några extra som har testas)
+source("Script/install_load_packages.R")
+source("Script/settings.R")
+install_and_load()
+settings <- get_settings()
+  
+kommunkod <- settings$kommunkod
+kommuner <- settings$kommuner
+
+source("Script/create_save_plots.R")
+
+# Ställer in rätt typsnitt
+try(font_add_google("Source Sans Pro", "sourcesanspro"), silent = TRUE)
+font_add("Arial", "path/to/arial.ttf") # Specify the path if Arial is not system-default
+showtext_auto()
+```
+
+
+
+```{r echo = FALSE}
+# läsa in data från boverket 
+
+# Read the Excel file
+df_bostadsverket <- read_excel('Data/boverket.xlsx',skip = 3 ) # skip för att få rätt kolumnnamn
+
+# filtrerar ut kommuner i Uppsala län
+df_bostadsverket <- df_bostadsverket %>% filter(Kommun %in% kommuner)
+
+bedom_av_bostadsmarknad <- df_bostadsverket[,c(4,6)]
+
+```
+
+# Vad säger kommunerna själva år 2025?
+
+Kommunernas egna bedömningar av bostadsmarknadsläget bygger på Bostadsmarknadsenkäten 2025. Här får kommunerna ange om det råder balans, underskott eller överskott på bostäder i förhållande till efterfrågan. Bedömningarna ger en samlad bild av hur tillgången till bostäder upplevs lokalt och hur väl den möter invånarnas behov.
+
+På frågan "Hur bedömer ni för närvarande kommunens bostadsmarknadsläge?(I kommunen som helhet)", så har kommunerna i regionen svarat såhär inför 2025.
+
+```{r, echo = FALSE}
+#colnames(bedom_av_bostadsmarknad)[2] <- 'Bostadsmarknadslägesbedömning'
+
+#knitr::kable(bedom_av_bostadsmarknad, caption = 'Bedömning av bostadsmarknadsläge [Kommunen som helhet]')
+```
+
+```{r, echo = FALSE}
+#| label: "tbl-bostadsbedom"
+#| tbl-cap: ""
+
+ # läser in gt för snyggare tabeller
+
+# Printar tabell 
+colnames(bedom_av_bostadsmarknad)[2] <- 'Bedömning'
+bedom_av_bostadsmarknad %>%
+  gt() %>%
+  tab_header(
+    title = "Bedömning av bostadsmarknadsläge",
+    subtitle = "(I kommunen som helhet)"
+  )
+
+df_supplatelse <- read.csv('Data/df_supplatelse.csv')
+max_ar <-  as.integer(max(df_supplatelse$år))
+```
+
+Det är två kommuner som bedömer sig att ha en balans på bostadsmarknaden, vilket är Knivsta och Enköping, resterande kommuner bedömer bostadsmarknadsläget till underskott
+
+Jämför vi sedan med tidigare bedömningar från 2013 och 2018 i @tbl-bostadsbedom2 så ser vi att bostadsmarknaden ofta bedöms att vara i obalans, endast 3 av 24 svar från de valda åren aviker från "Obalans", "Underskott" och "Brist på bostäder".
+
+```{r}
+#| label: "tbl-bostadsbedom2"
+#| tbl-cap: ""
+
+# Read the Excel file
+df_bostadsverket1 <- read_excel('Lägetpåbostadsmarknaden2013.xlsx',skip = 1 ) # skip för att få rätt kolumnnamn
+
+
+
+# filtrerar ut kommuner i Uppsala län
+df_bostadsverket1 <- df_bostadsverket1 %>% filter(Kommun %in% kommuner)
+
+bedom_av_bostadsmarknad2013 <- df_bostadsverket1[,c(3,14)]
+colnames(bedom_av_bostadsmarknad2013)[2] <- "Bedömning 2013"
+# Read the Excel file
+df_bostadsverket2 <- read_excel('Lägetpåbostadsmarknaden2018.xlsx',skip = 1 ) # skip för att få rätt kolumnnamn
+
+
+# filtrerar ut kommuner i Uppsala län
+df_bostadsverket2018 <- df_bostadsverket2 %>% filter(Kommun %in% kommuner)
+
+bedom_av_bostadsmarknad2018 <- df_bostadsverket2018[,c(1,6)]
+colnames(bedom_av_bostadsmarknad2018)[2] <- "Bedömning 2018"
+
+df_bedom <- bedom_av_bostadsmarknad2013 %>% left_join(bedom_av_bostadsmarknad2018,by='Kommun' ) %>% 
+             left_join(bedom_av_bostadsmarknad,by='Kommun' ) 
+
+df_bedom <- df_bedom[order(df_bedom$Kommun),]
+colnames(df_bedom)[4] <- 'Bedömning 2025'
+df_bedom %>%
+  gt() %>%
+  tab_header(
+    title = "Bedömning av bostadsmarknadsläge",
+    subtitle = "(I kommunen som helhet)"
+  )
+
+```
+
+# Ledighet/tillgänglighet i flerbostadshus
+
+```{r}
+#| label: "tbl-andelledig"
+#| tbl-cap: ""
+
+
+
+df_lediga <- read.csv('Data/df_lediga.csv')
+
+tot_ledigt <- df_lediga %>% filter(lägenhetstyp == 'totalt', år == max(as.integer(år))) %>% select(region,Andel.lediga.lägenheter.i.flerbostadshus..allmännyttiga ) %>%   rename(Andel = Andel.lediga.lägenheter.i.flerbostadshus..allmännyttiga, Region ='region')
+
+tot_ledigt %>%
+  gt() %>%
+  tab_header(
+    title = "Andel lediga lägenheter i flerbostadshus, allmännyttiga",
+    subtitle = 'Andel i procent'
+    
+  )
+
+```
+
+Alla kommuner har en låg andel lägenheter som står lediga, lägst har Knivsta och Uppsala på 0,0% och högst har Tierp på 0,2%.
+
+## Andel hyresrätt per kommun
+
+Upplåtelseformen i flerbostadshus skiljer sig tydligt mellan kommunerna och påverkar tillgängligheten på bostadsmarknaden. Tabellen visar andelen hyresrätter respektive bostadsrätter i flerbostadshus år `r max_ar`, beräknat inom varje kommun. Genom jämförelsen går det att se både variationer och mönster i boendeformerna i länet.
+
+```{r echo=FALSE}
+#| label: "tbl-bostadsandel"
+#| tbl-cap: ""
+
+df_supplatelse <- read.csv('Data/df_supplatelse.csv')
+# plockar ut 2024 data på flerbostadshus för alla kommuner och gör till andel inom kommunerna i procent
+flerbostadshus <- df_supplatelse %>% filter(hustyp=='flerbostadshus',år== max(as.numeric(år)) ,
+                                            upplåtelseform %in% c('hyresrätt' , 'bostadsrätt')) %>% 
+                  group_by(region) %>%  mutate(Andel = round((Antal/ sum(Antal))*100))
+
+
+
+# gör till wide och tar bort NAs
+flerbostadshus_wide <- flerbostadshus %>% pivot_wider(names_from = upplåtelseform, values_from=Andel) %>% 
+                        select(region, hyresrätt, bostadsrätt) %>%   group_by(region) %>%
+                      summarise(hyresrätt = max(hyresrätt, na.rm = TRUE),
+                        bostadsrätt = max(bostadsrätt, na.rm = TRUE))
+
+# uppercase på kolumner
+colnames(flerbostadshus_wide) <- paste(toupper(substr(colnames(flerbostadshus_wide), 1, 1)), substr(colnames(flerbostadshus_wide), 2, nchar(colnames(flerbostadshus_wide))), sep="")
+
+# Printar tabell 
+flerbostadshus_wide %>%
+  gt() %>%
+  tab_header(
+    title = "Andel hyresrätt/bostadsrätt i flerbostadshus per kommun",
+    subtitle = "Andel i procent"
+  )
+```
+
+Uppsala är den enda kommunen i länet som har en hyresrättsandel under 50%, Älvkarleby sticker ut med en hyresrättsandel på 89%. Tittar man på de kommunerna som bedömde att deras bostadsmarknad är i balans så har Knivsta en hyresrättsandel på 53%, vilket är den näst lägsta och Enköping som har en hyresrättsandel på 60%, vilket är den tredje lägsta i länet. Endast 29 av 290 kommuner i Sverige har fler bostadsrätter än hyresrätter i flerbostadshus, över hälften av dessa ligger i Stockholms län.
+
+-   Flerbostadshus avser bostadsbyggnader innehållande tre eller flera lägenheter inklusive loftgångshus.
+
+    -   Flerbostadshus och övriga hus med hyresrätt avser lägenheter som inte är ägarlägenheter och som ägs av andra ägare än bostadsrättsföreningar eller bostadsföreningar.
+
+    -   Bostadsrätt avser lägenheter som ägs av bostadsrättsföreningar eller bostadsföreningar (en äldre boendeföreningsform som existerade innan bostadsrättslagen introducerades 1930).
+
+*Informationen ovan baseras på hur Statistiska centralbyrån (SCB) definierar variablerna.*
+
+### Lägenheternas Area
+
+Utöver upplåtelseform är även lägenheternas storlek en viktig del av bostadsmarknaden. Genom att jämföra areafördelningen i flerbostadshus mellan kommunerna går det att se hur bostadsbeståndet skiljer sig åt. Figuren visar andelen lägenheter inom olika storleksintervall i respektive kommun år `r max_ar`.
+
+```{r ,results="asis"}
+#| label: fig-storlekfordelning
+#| fig-cap: ""
+knitr::include_graphics("Figurer/flerbostadsarea.svg")
+
+```
+
+I @fig-storlekfordelning syns fördelningen över bostadsarea i flerbostadshus för varje kommun, det som går att utläsa är att Knivsta och Uppsala har en jämnare fördelning mellan storleken på bostadsareorna. Heby, Tierp, Älvkarleby och Östhammar har en mer ojämn fördelning där de flesta flerbostadslägenheterna är mellan 51 och 80 kvadratmeter stora .
+
+## Upplåtelseformsutveckling från 2013 - `r max_ar`
+
+**Datakällor och definitioner av upplåtelseformer**
+
+För att analysera utvecklingen av upplåtelseformer har data som omfattar småhus, flerbostadshus och övriga hus med vanliga bostadslägenheter använts. Specialbostäder, såsom studentbostäder eller bostäder för äldre och personer med funktionsnedsättning, har inte inkluderats.
+
+-   **Upplåtelseform**
+
+    Lägenheternas upplåtelseform utgår från ägarförhållandet och inte hur de boende förfogar över lägenheterna.
+
+    -   **Hyresrätt**
+
+        Småhus med hyresrätt avser lägenheter som ägs av andra än fysiska personer, dödsbon, bostadsrättsföreningar eller bostadsföreningar.
+
+        Flerbostadshus och övriga hus med hyresrätt avser lägenheter som inte är ägarlägenheter och som ägs av andra än bostadsrättsföreningar eller bostadsföreningar.
+
+    -   **Bostadsrätt**
+
+        Bostadsrätt avser lägenheter som ägs av bostadsrättsföreningar eller äldre bostadsföreningar (en boendeform som existerade före bostadsrättslagens införande 1930).
+
+    -   **Äganderätt**
+
+        Småhus med äganderätt avser lägenheter som ägs av fysiska personer eller dödsbon.
+
+        Flerbostadshus och övriga hus med äganderätt avser ägarlägenheter.
+
+*Informationen ovan baseras på hur Statistiska centralbyrån (SCB) definierar variablerna.*
+
+### Regionen som helhet
+
+
+```{r, fig.cap=''}
+#| fig-cap: ""
+#| label: fig-upplatelser
+knitr::include_graphics("Figurer/region_utv_upp.svg")
+```
+
+I En positiv trend för alla upplåtelseformer syns under perioden, men framförallt så är det antalet hyres- och bostadsrätter som har ökat mest. Under perioden så syns det en ökning på över 25000 lägenheter i Uppsala län
+
+### Kommunnivå
+
+::: panel-tabset
+```{r, results='asis'}
+
+
+# kod som genererar knappar för kommunerna så att ej alla prints direkt. 
+
+kommentarer <- tibble::tibble(
+  region = sort(kommuner),
+  kommentar = c(
+    "\nEnköping har haft en stabil utveckling av alla upplåtelseformer under perioden.",
+    "\nHeby har en stor majoritet av äganderätt, liten ökande trend för antalet lägenheter och småhus.",
+    "\nHåbo har en stor majoritet av ädangerätt, men de senaste åren syns en tydlig ökning av både hyres- och bostadsrätter.",
+    "\nKnivsta har en stor ökning på både hyres- och bostadsrätter de senaste åren och är den enda kommunen tillsammans med Uppsala som har fler bostadsrätter än hyresrätter",
+    "\nTierp har har till störst del äganderätter, antalet hyres- och bostadsrätter ökar något under perioden.",
+    "\nUppsala har en positiv trend för alla upplåtelseformer, noterbart är att antalet hyresrätter överstiger antalet äganderätter mellan 2020 och 2021.",
+    "\nÄlvkarleby har ett väldigt konstant antal bostadsrätter under prioden, men antalet hyres- och äganderätter ökar något.",
+    "\nÖsthammar har en liten ökning av alla upplåtelseformer under perioden där äganderätt är en stor majoritet."
+  )
+)
+
+
+# printar både plot och en kort kommentar per kommun
+
+for (r in unique(kommuner)) {
+  file_name <- paste0("Figurer/plot_upplatelseform_", r, ".svg")
+  
+  cat("## ", r, "\n", sep = "")
+  cat('<img src="', file_name, '" alt="', r, '" style="width:100%; max-width:800px; height:100%;">\n', sep = "")
+  # kommentar (slå upp i tabellen)
+  text <- kommentarer %>%
+    filter(region == r) %>%
+    pull(kommentar)
+  
+  cat(text, "\n")
+  # Download button
+  cat('<p><a href="', file_name, '" download class="btn btn-primary">Ladda ner bilden</a></p>\n\n', sep = "")
+  
+}
+```
+:::
+
+Alla kommuner har en positiv trend för det totala antalet lägenheter och småhus mellan 2013 och `r max_ar`, men det skiljer sig i vilka typer av upplåtelseformer det är som är vanligast, ökar mest och i hur stor ökningen är.
+
+## Befolkningsförändring i relation till färdigställda bostäder
+
+För att förstå balansen mellan befolkningsutveckling och bostadsbyggande redovisas här hur antalet färdigställda bostäder i länet utvecklats i relation till den årliga befolkningsförändringen. Befolkningsförändringen definieras som skillnaden i folkmängd vid årets början och slut. Jämförelsen visar hur nyproduktionen av bostäder motsvarar det ökade befolkningsunderlaget.
+
+### Regionnivå
+
+
+```{r}
+#| fig-cap: ""
+#| label: fig-nybygg
+
+
+knitr::include_graphics("Figurer/nybygg_region.svg")
+```
+
+In med kommentarer här
+
+### Kommunnivå
+
+
+
+
+::: panel-tabset
+```{r, results='asis'}
+
+# kod som genererar knappar för kommunerna så att ej alla prints direkt. 
+
+kommentarer <- tibble::tibble(
+  region = sort(kommuner),
+  kommentar = c(
+    "\nEnköping har under perioden en varierande befolkningsförändring och antal nybyggda bostäder, det syns två tydliga toppar i befolkningsförändringen år 2016 och 2021.",
+    "\nHeby har en jämn nivå av nybyggda bostäder, men år 2022 sticker ut då ett stort antal hyresrätter blev färdigbygda. År 2023 så hade kommunen en negativ befolkningsförändring",
+    "\nHåbo har tre tydliga toppar i befolkningsförändringen vilket är år 2016, 2018 och 2022. Antalet nybyggda bostäder har också tre tudliga toppar åren 2019, 2021 och 2023, det skiljer sig däremot i vilket typ av upplåtelse de nybyggda bostäderna har för de tre åren.",
+    "\nKnivsta har under periodens första halva ett stort antal bostadsrätter som blir färdigbyggda, medan den andra halvad har ett större antal hyresrätter. Befolkningsförändringen varierar kraftigt mellan åren. ",
+    "\nTierp har under periodens början en positiv befolkningsförändring, men det är väldigt fånya bostäder som blir färdigställda. De tre senaste åren har resulterat i en negativ befölkningsförändring.",
+    "\nUppsala har en konstant befolkningsökning under perioden och det är en variation mellan hyres- och bostadsrätter som den upplåtelseform som är vanligast på nybyggnation. 2013 är det enda året som bostäder med äganderätt är fler än de andra två upplåtelseformerna. 2024 så var antalet nybyggda bostäder över 700 fler än befolkningsförändringen.",
+    "\nÄlvkarleby har en väldigt variarande befolkningsförändring under perioden och under de två senaste åren så har den varit negativ. Mellan 2013 och 2019 så byggdes det väldigt få bostäder och det var endast äganderätter som byggdes, år 2020 så blev ett stort antal hyresrätter färdigbyggda och endast under två av åren i perioden så har bostadsrätter blivit fördigbyggda.",
+    "\nÖsthammar har de senaste 3 åren en negativ befolkningsförändring och under flera år så är äganderätt den vanligaste nybyggnationen."
+  )
+)
+
+
+# printar både plot och en kort kommentar per kommun
+
+for (r in unique(kommuner)) {
+  file_name <- paste0("Figurer/plot_tid_nybygg_befolk_", r, ".svg")
+  cat("## ", r, "\n", sep = "")
+  cat('<img src="', file_name, '" alt="', r, '" style="width:100%; max-width:800px; height:100%">\n\n', sep = "")
+  cat("\n") 
+  # kommentar (slå upp i tabellen)
+  text <- kommentarer %>%
+    filter(region == r) %>%
+    pull(kommentar)
+  
+  cat(text, "\n\n")
+  # Download button
+  cat('<p><a href="', file_name, '" download class="btn btn-primary">Ladda ner bilden</a></p>\n\n', sep = "")
+  
+
+}
+
+
+
+```
+:::
+
+### Uppskattat bostadsbehov
+
+Hyresgästföreningen (2025) har utvecklat en förenklad metod för att beräkna bostadsbrist på kommunnivå. Metoden bygger på offentligt tillgänglig statistik och är en anpassning av Boverkets modell för byggbehov.
+
+Metoden använder år 2006 som referensår, eftersom bostadsmarknaden då bedöms ha varit i balans. Från detta år beräknas en kvot som visar förhållandet mellan antalet vuxna över 20 år och antalet bostäder i kommunen:
+
+$$\text{Bostadsbristkvot}=\frac{\text{Antal vuxna över 20}}{\text{Antal bostäder}}$$
+
+När denna kvot är framtagen används den för att beräkna hur många nya bostäder som behöver byggas vid befolkningsförändringar.
+
+::: {.callout-note collapse="true"}
+## Exempel på beräkning av bostadsbristkvoten
+
+-   Antag att bostadsbristkvoten för en kommun är 1,5
+
+-   Om befolkningen ökar med 100 personer beräknas behovet av nya bostäder så här: $\frac{100}{1,5} = 66,7$ bostäder. För att säkerställa att behovet täcks med färdigställda bostäder avrundas resultatet alltid uppåt, vilket ger 67 nya bostäder.
+:::
+
+Om det faktiska antalet nybyggda bostäder är lägre än det beräknade behovet, innebär det att en bostadsbrist har uppstått i kommunen. Metoden ger därmed en indikation på om bostadsbyggandet håller jämna steg med befolkningsutvecklingen.
+
+```{r}
+#| label: "tbl-kvot"
+#| tbl-cap: ""
+
+folkmangd <- read.csv('Data/df_folkmangd.csv')
+folkmangd_tot <- folkmangd %>% group_by(region) %>% 
+                  summarise(Total_folkmängd = sum(Folkmängd), .groups = 'drop') 
+
+df_supplatelse_2006 <- df_supplatelse %>% filter(år =='2006') %>% 
+                        group_by(region) %>% summarise(Total_bostader = sum(Antal), .groups='drop')
+
+df_kvot <- left_join(df_supplatelse_2006,folkmangd_tot, by='region' )
+
+df_kvot$Kvot <- df_kvot$Total_folkmängd / df_kvot$Total_bostader # beräknar kvoten
+
+colnames(df_kvot) <- c('Region', 'Antal bostäder', 'Antal vuxna', 'Kvot')
+
+# Printar tabell 
+df_kvot %>%
+  gt() %>%
+  tab_header(
+    title = "Hyresgästföreningens kvot per kommun i Uppsala län, basår 2006"
+    
+  ) %>% fmt_number( # ändrar antalet decimaler
+    columns = vars(Kvot),  
+    decimals = 2            
+  )
+```
+
+De flesta kommunerna har en basårskvot på 1.6, Håbo och Knivsta sticker ut med en något högre kvot runt 1.8.
+
+*Kvoterna ovan är avrundade och inte de exakta värdena som använts för att uppskatta bostadsbehovet i varje kommun.*
+
+
+------------------------------------------------------------------------
+
+Siffrorna som presenteras under varje diagram visar differensen mellan antal nybyggda bostäder och det uppskattade behovet enligt Hyresgästföreningens modell. Ett negativt värde indikerar bostadsbrist, medan ett positivt värde visar att nybyggnationen överstiger behovet.
+
+$$\text{Bostadsdifferens} = \text{Nybyggda bostäder} - \text{Uppskattat behov}$$
+
+::: panel-tabset
+```{r, results='asis'}
+# printar både plot  per kommun
+folkmangd <- read.csv('Data/df_folkmangd.csv')
+folkmangd_tot <- folkmangd %>% group_by(region) %>% 
+    summarise(Total_folkmängd = sum(Folkmängd), .groups = 'drop') 
+  
+df_supplatelse <- read.csv('Data/df_supplatelse.csv')
+  
+df_supplatelse_2006 <- df_supplatelse %>% filter(år =='2006') %>% 
+    group_by(region) %>% summarise(Total_bostader = sum(Antal), .groups='drop')
+  
+df_kvot <- left_join(df_supplatelse_2006,folkmangd_tot, by='region' )
+  
+df_kvot$Kvot <- df_kvot$Total_folkmängd / df_kvot$Total_bostader # beräknar kvoten
+  
+colnames(df_kvot) <- c('Region', 'Antal bostäder', 'Antal vuxna', 'Kvot')
+df_nybyggda <- read.csv('Data/df_nybyggda.csv')
+df_befolkf <- read.csv('Data/df_befolkf.csv')
+  
+df_nybyggda$år <- as.integer(df_nybyggda$år)
+  # Summera nybygg utan upplåtelseform
+tid_df_nybyggda_total <- df_nybyggda %>% 
+    filter(as.numeric(år) > 2012) %>% 
+    group_by(region, år) %>%   
+    summarise(Total_nybygg = sum(Antal), .groups = "drop")
+  
+  # Befolkning
+tid_df_befolkf <- df_befolkf %>% 
+    rename(Antal_personer = Antal.personer) %>%  
+    filter(as.numeric(år) > 2012) %>% 
+    group_by(region, år) %>%  
+    summarise(Total_personer = sum(Antal_personer), .groups = "drop")
+  
+  # Lägg på kvot och uppskattat bostadsbehov
+tid_df <- tid_df_befolkf %>%
+    left_join(tid_df_nybyggda_total, by = c("region", "år")) %>%
+    left_join(df_kvot %>% select(Region, Kvot), by = c("region" = "Region")) %>%
+    mutate(Uppskattat_behov = ceiling(Total_personer / Kvot))
+  
+  
+  # Long-format för linjer
+lines_df <- tid_df %>%
+    select(region, år, Total_personer, Uppskattat_behov) %>%
+    pivot_longer(
+      cols = c(Total_personer, Uppskattat_behov),
+      names_to = "Typ",
+      values_to = "Total"
+    )
+tid_df <- tid_df %>% mutate(år = as.integer(år))
+for (r in sort(kommuner)) {
+  filter_kommun <- tid_df %>% filter(region==r) %>% 
+                  group_by(år) %>% mutate(year_Diff = Total_nybygg-Uppskattat_behov) %>% ungroup() 
+  senast_diff <- filter_kommun %>% filter(år == max(år, na.rm = TRUE))
+  total_diff <- sum(filter_kommun$year_Diff, na.rm = TRUE)
+  
+  file_name <- paste0("Figurer/plot_bostadsbrist_", r, ".svg")
+  cat("## ", r, "\n\n", sep = "")
+  cat('<img src="', file_name, '" alt="', r, '" style="width:100%; max-width:800px; height:100%;">\n\n', sep = "")
+  cat("\n") 
+  
+  # Textutskrift
+  cat('**Sammanfattning för ', r, ':**\n\n', sep = "")
+  cat('- Total bostadsdifferens för hela perioden: ', total_diff, ' bostäder\n', sep = "")
+  cat('- Bostadsdifferens för år ', max(filter_kommun$år, na.rm = TRUE), ': ', senast_diff$year_Diff, ' bostäder\n\n', sep = "")
+  
+  # If-sats för att automatiskt tolka differensen
+  if(total_diff < 0) {
+    cat('Detta indikerar en ackumulerad bostadsbrist över perioden.\n\n')
+  } else if(total_diff > 0) {
+    cat('Detta indikerar att nybyggnationen överträffat behovet över perioden.\n\n')
+  } else {
+    cat('Detta indikerar balans mellan nybyggnation och behov över perioden.\n\n')
+  }
+  # Download button
+  cat('<p><a href="', file_name, '" download class="btn btn-primary">Ladda ner bilden</a></p>\n\n', sep = "")
+  
+
+}
+```
+:::
+
+Bostadsbrist råder varje gång den gula linjen "Uppskattat bostadsbehov" visar ett högre antal än de gråa staplarna som visar det totala antalet nybyggda bostäder.
+
+# Upplåtelseform på DeSo-nivå
+
+För att få en mer detaljerad bild av bostadsmarknaden redovisas upplåtelseformer på DeSo-nivå (Demografiska statistikområden). Kartan visar vilken upplåtelseform som är vanligast i varje område, tillsammans med respektive andel.
+
+
+
+```{r}
+#| fig-cap: ""
+#| label: fig-deso
+
+deso_upplat()
+```
+
+
+På en stor del av länets yta så är äganderätt den vanligaste upplåtseformen, bostadsrätter är den vanligaste upplåtelseformen i två DeSo områden i Enköping, ett i Knivsta och Östhammar och i 58 områden i Uppsala vilket kan ses i @tbl-antaldeso.
+
+```{r}
+#| label: "tbl-antaldeso"
+#| tbl-cap: ""
+# Read the layer safely
+suppressMessages({
+  suppressWarnings({
+    deso_sf <- st_read(
+      dsn = "Data/deso_sf.gpkg",
+      layer = "deso_sf",  # replace with your actual layer name
+      quiet = TRUE
+    )
+  })
+})
+
+mest_popular_upplat <- deso_sf %>%
+  group_by(desokod) %>%
+  slice_max(order_by = Antal, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  mutate(Popularaste_upplåtelseform = upplåtelseform) %>%
+  select(desokod, Popularaste_upplåtelseform, kommunnamn)
+
+table_df <- as.data.frame.matrix(table(mest_popular_upplat$Popularaste_upplåtelseform,
+                                mest_popular_upplat$kommunnamn))
+
+rownames(table_df) <- c('Bostadsrätt', 'Hyresrätt', 'Äganderätt')
+
+
+
+table_df %>%
+  gt(rownames_to_stub = T) %>%
+  tab_header(
+    title = "Antal områden där upplåtelseformen är vanligast per kommun"
+  )
+
+```
+
+# Bostädernas ålder
+
+Bostadsbeståndets ålder används för att skapa en bild om hur bostadsmarknaden har utvecklat över tid. Bostadsbeståndets ålder redovisas i tioårsperioder från 1931–1940 och äldre bostäder samlas i kategorin ”–1930”. Statistiken bygger på lägenhetsregistret som uppdateras löpande och omfattar både nyproduktion och förändringar i det befintliga beståndet.
+
+## Regionen
+
+Figuren visar fördelningen av bostäder per hustyp och byggnadsperiod i regionen år `r max_ar` Småhus, flerbostadshus och övriga hus redovisas separat för att ge en översikt över beståndets åldersstruktur.
+
+```{r}
+#| fig-cap: ""
+#| label: fig-alder
+byggnadsperiod_region()
+```
+
+## Kommuner
+
+För att se byggnadsperioderna per hustyp för varje enskild kommun så går det i @fig-alderkommun att bläddra mellan kommunerna i listan till vänster.
+
+```{r,  fig.cap=''}
+#| fig-cap: ""
+#| label: fig-alderkommun
+
+byggnadsperiod_kommun()
+```
+
+# Fritidshus i Uppsala län
+
+Fritidshusen utgör en betydande del av bostadsbeståndet eftersom de påverkar fastighetsmarknaden och investeringar i länet. Statistiken nedan visar utvecklingen av antalet fritidshus i länet och i respektive kommun mellan 1998 och `r max_ar`. Genom att följa förändringarna över tid blir det möjligt att se skillnader i trender och nivåer mellan kommunerna.
+
+
+
+## Utvecklingen i länet
+
+```{r}
+#| fig-cap: ""
+#| label: fig-fritidshus
+
+
+knitr::include_graphics("Figurer/fritidshus_region.svg")
+```
+
+Den nedåtgående trenden för antal fritidshus i hela länet vände mellan år 2014 och 2015, där det som lägst var 17437 stycken, för att sedan återgå till en nivå över 18000.
+
+## Utvecklingen per kommun
+
+```{r}
+#| fig-cap: ""
+#| label: fig-fritidskommun
+
+
+
+
+knitr::include_graphics("Figurer/fritidshus_kommun.svg")
+
+```
+
+Notera att y-axlarna skiljer sig mellan graferna, Tierp, Älvkarleby och Östhammar har alla en tydlig positiv trend där antalet fritidshus har ökat under perioden, där Östhammar har den klart största ökningen. Knivsta och Heby har en relativt stabil nivå av antal fritidshus, medan Enköping, Håbo och Uppsala alla har en tydlig negativ trend på antalet fritidshus under perioden.
+
+# Ekonomiska aspekter
+
+## Hyresnivåer och utveckling
+
+Hyresnivaerna är en central del av bostadsmarknadens ekonomiska förutsättningar, genom att analysera medianhyran i hyreslägenhet per kvadratmeter får vi en bild av hur kostnaderna har utvecklats över tid i länet.
+
+Definitioner:
+
+-   Ny månadshyra per kvm: Den hyra som har börjat gälla efter den årliga hyresförändringen. Om hyran inte ändras under året är ny månadshyra samma som decemberhyra föregående år
+
+-   Kr/kvm/månad: Hyran uttrycks per kvadratmeter bostadsarea och månad
+
+**Datakälla och metodanmärkning:** *Det saknas för denna data i SCB:s databas medianhyra för Tierp år 2017, men eftersom medianhyran i hyreslägenheter i Tierp var 86 kr både 2016 och 2018 så imputeras detta värde in på 2017.*
+
+
+
+```{r}
+#| fig-cap: ""
+#| label: fig-hyra
+
+hyres_utveck()
+```
+
+Medianhyrorna visar en tydlig polarisering mellan kommunernas hyresnivåer under perioden där de fyra kommunerna Heby, Tierp, Älvkarleby och Östhammar har haft en begränsad hyresökning och ligger kvar på relativt låga nivåer. I kontrast har Enköping, Håbo, Knivsta och Uppsala ökat mer, där särskilt Knivsta har en markant utveckling från 87 kr/kvm år 2016 till 151 kr/kvm år `r max_ar` - alltså en ökning på över 70%. Detta innebär att Knivsta gått från fjärde till högsta medianhyra i länet och nu ligger 47-54 kr/kvm över de fyra kommunerna med lägst hyror. Den stora ökningen i Knivsta behöver inte betyda att alla hyror i kommunen har ökat kraftigt, utan det kan vara så att en stor del av de nybyggda bostäderna har en hög hyra vilket drar upp medianen.
+
+```{r}
+# Befolkningsstatistik antal personer efter region, förändringar, period, kön och år 2025
+url <- 'https://api.scb.se/OV0104/v1/doris/sv/ssd/START/BE/BE0101/BE0101G/BefforandrKvRLKCKM'
+
+
+pxweb_query_list <-
+  list('Region' = kommunkod,
+       'Forandringar'= c('115', '130', '140','150','160','170','175', '180','190'),
+       'Period' = c("halv1","halv2"),
+       'Kon' = 'TotSa',
+       'Tid' = '*',
+       'ContentsCode' = '*'
+  )
+
+
+# Download data 
+px_data <- pxweb_get(url = url,pxweb_query_list)
+
+
+# Convert to data.frame 
+df_befolk_halvar <- as.data.frame(px_data, column.name.type = "text", variable.value.type = "text")
+
+df_befolk_halvar <- df_befolk_halvar %>% drop_na()
+# imputerar ett saknande värde till samma som året innan och efter
+
+
+```
+
+```{r}
+# Befolkningsstatistik, antal personer efter region, förändringar, period, kön och år
+
+url <- 'https://api.scb.se/OV0104/v1/doris/sv/ssd/START/BE/BE0101/BE0101G/BefforandrKvRLK'
+
+
+```
