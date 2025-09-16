@@ -24,7 +24,9 @@ install_and_load <- function() {
     'sf',
     'reactable',
     'forcats',
-    'scales'
+    'scales',
+    'tibble',
+    'gtExtras'
   )
   
   # Installera och ladda CRAN-paket

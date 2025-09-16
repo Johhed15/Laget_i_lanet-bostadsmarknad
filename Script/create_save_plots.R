@@ -620,7 +620,6 @@ deso_upplat <- function(){
   
 }
 
-deso_upplat()
 
 ####### Byggnadsperiod #########
 
@@ -659,7 +658,19 @@ fig <- plot_ly(
          xaxis = list(title = "Byggnadsperiod"),
          yaxis = list(title = "Antal")
   )
-
+fig <- config(
+  fig,
+  modeBarButtonsToRemove = c(
+    'zoom2d',     # zoom button
+    'pan2d',      # pan button
+    'select2d',   # box select
+    'lasso2d',    # lasso select
+    'zoomIn2d',   # zoom in
+    'zoomOut2d'   # zoom out
+  ),toImageButtonOptions = list(
+    format = "svg",
+    filename = "byggnadsperiod_region"),
+  displaylogo = FALSE)   # remove plotly logo/link
 fig
 }
 
@@ -756,6 +767,19 @@ byggnadsperiod_kommun <- function(){
         )
       )
     )
+  fig <- config(
+    fig,
+    modeBarButtonsToRemove = c(
+      'zoom2d',     # zoom button
+      'pan2d',      # pan button
+      'select2d',   # box select
+      'lasso2d',    # lasso select
+      'zoomIn2d',   # zoom in
+      'zoomOut2d'   # zoom out
+    ),toImageButtonOptions = list(
+      format = "svg",
+      filename = "byggnadsperiod_kommun"),
+    displaylogo = FALSE)   # remove plotly logo/link
   
   
   fig
@@ -893,7 +917,19 @@ hyres_utveck <- function(){
         font = list(size = 12)
       )
     )
-  
+  fig_highlight <- config(
+    fig_highlight,
+    modeBarButtonsToRemove = c(
+      'zoom2d',     # zoom button
+      'pan2d',      # pan button
+      'select2d',   # box select
+      'lasso2d',    # lasso select
+      'zoomIn2d',   # zoom in
+      'zoomOut2d'   # zoom out
+    ),toImageButtonOptions = list(
+      format = "svg",
+      filename = "hyres_utveckling"),
+    displaylogo = FALSE)   # remove plotly logo/link
   # Visa den interaktiva versionen
   fig_highlight
 }

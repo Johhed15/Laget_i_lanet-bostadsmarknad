@@ -28,7 +28,6 @@ source("Script/install_load_packages.R")
 source("Script/settings.R")
 install_and_load()
 settings <- get_settings()
-library(webshot2)
 kommunkod <- settings$kommunkod
 kommuner <- settings$kommuner
 
@@ -78,6 +77,13 @@ bedom_av_bostadsmarknad %>%
   tab_header(
     title = "Bedömning av bostadsmarknadsläge",
     subtitle = "(I kommunen som helhet)"
+  )%>%
+  data_color(
+    columns = vars(Bedömning),
+    colors = scales::col_factor(
+      palette = c( "#4AA271","#D0342C"), # choose colors you like
+      domain = c("Underskott på bostadsmarknaden", "Balans på bostadsmarknaden")
+    )
   )
 
 df_supplatelse <- read.csv('Data/df_supplatelse.csv')
@@ -122,6 +128,19 @@ df_bedom %>%
   tab_header(
     title = "Bedömning av bostadsmarknadsläge",
     subtitle = "(I kommunen som helhet)"
+  )%>%
+  data_color(
+    columns = vars(`Bedömning 2013`, `Bedömning 2018`, `Bedömning 2025`),
+    colors = col_factor(
+      palette = c("#4AA271","#D0342C","#4AA271", "#D0342C","#D0342C"),  # positive, negative, intermediate
+      domain = c(
+        "Balans på bostadsmarknaden",    
+        "I stort sett balans på bost. markn.",# positive → green
+        "Underskott på bostadsmarknaden",        # negative → red
+        "Obalans - underskott på bostäder",       
+        'Brist på bostäder'
+      )
+    )
   )
 
 ```
@@ -144,6 +163,13 @@ tot_ledigt %>%
     title = "Andel lediga lägenheter i flerbostadshus, allmännyttiga",
     subtitle = 'Andel i procent'
     
+  )%>%
+  data_color(
+    columns = vars(Andel),
+    colors = col_numeric(
+      palette = c("#B81867", "#F4DCE8"),  
+      domain = NULL                 # scales automatically from min to max
+    )
   )
 
 ```
@@ -175,16 +201,39 @@ flerbostadshus_wide <- flerbostadshus %>% pivot_wider(names_from = upplåtelsefo
 # uppercase på kolumner
 colnames(flerbostadshus_wide) <- paste(toupper(substr(colnames(flerbostadshus_wide), 1, 1)), substr(colnames(flerbostadshus_wide), 2, nchar(colnames(flerbostadshus_wide))), sep="")
 
-# Printar tabell 
-flerbostadshus_wide %>%
-  gt() %>%
+
+# Compute row-wise difference in a temporary variable
+diff_values <- flerbostadshus_wide$Hyresrätt - flerbostadshus_wide$Bostadsrätt
+
+# Create gt table using only the original columns
+gt_table <- gt(flerbostadshus_wide) %>%
   tab_header(
     title = "Andel hyresrätt/bostadsrätt i flerbostadshus per kommun",
     subtitle = "Andel i procent"
+  ) %>%
+  # Highlight rows where Hyresrätt dominates
+  gt_highlight_rows(
+    rows = diff_values > 20,
+    columns = everything(),
+    fill = "#B81867",
+    alpha = 0.3,
+    font_weight = "bold",
+    font_color = "#000000"
+  ) %>%
+  # Highlight rows where Bostadsrätt dominates
+  gt_highlight_rows(
+    rows = diff_values <= 20,
+    columns = everything(),
+    fill = "#F4DCE8",
+    alpha = 0.3,
+    font_weight = "bold",
+    font_color = "#000000"
   )
+
+gt_table
 ```
 
-Uppsala är den enda kommunen i länet som har en hyresrättsandel under 50%, Älvkarleby sticker ut med en hyresrättsandel på 89%. Tittar man på de kommunerna som bedömde att deras bostadsmarknad är i balans så har Knivsta en hyresrättsandel på 53%, vilket är den näst lägsta och Enköping som har en hyresrättsandel på 60%, vilket är den tredje lägsta i länet. Endast 29 av 290 kommuner i Sverige har fler bostadsrätter än hyresrätter i flerbostadshus, över hälften av dessa ligger i Stockholms län.
+Uppsala är den enda kommunen i länet som har en hyresrättsandel under 50%, Älvkarleby sticker ut med en hyresrättsandel på 89%. Tittar man på de kommunerna som bedömde att deras bostadsmarknad är i balans så har Knivsta en hyresrättsandel på 53%, vilket är den näst lägsta och Enköping som har en hyresrättsandel på 60%, vilket är den fjärde lägsta i länet. Endast 29 av 290 kommuner i Sverige har fler bostadsrätter än hyresrätter i flerbostadshus, över hälften av dessa ligger i Stockholms län.
 
 -   Flerbostadshus avser bostadsbyggnader innehållande tre eller flera lägenheter inklusive loftgångshus.
 
@@ -398,6 +447,13 @@ df_kvot %>%
   ) %>% fmt_number( # ändrar antalet decimaler
     columns = vars(Kvot),  
     decimals = 2            
+  )%>%
+  data_color(
+    columns = vars(Kvot),
+    colors = col_numeric(
+       palette = c("#F4DCE8", "#B81867"),  # low = red, high = green
+      domain = NULL                 # automatically scales from min to max
+    )
   )
 ```
 
@@ -535,13 +591,42 @@ table_df <- as.data.frame.matrix(table(mest_popular_upplat$Popularaste_upplåtel
 rownames(table_df) <- c('Bostadsrätt', 'Hyresrätt', 'Äganderätt')
 
 
+# Convert rownames to a column
+table_df2 <- table_df %>%
+  rownames_to_column(var = "Typ")  # "Typ" = Bostadsrätt, Hyresrätt, Äganderätt
 
-table_df %>%
-  gt(rownames_to_stub = T) %>%
+# Define color map
+color_map <- c(
+  "Hyresrätt"   = "#D57667",
+  "Bostadsrätt" = "#F9B000",
+  "Äganderätt"  = "#019CD7"
+)
+
+# Create gt table
+gt_table <- gt(table_df2, rowname_col = "Typ") %>%
   tab_header(
     title = "Antal områden där upplåtelseformen är vanligast per kommun"
   )
 
+# Highlight the highest value per column
+for (col in colnames(table_df2)[-1]) {  # skip 'Typ' column
+  # Find the row(s) with the max value in this column
+  max_rows <- table_df2$Typ[table_df2[[col]] == max(table_df2[[col]])]
+  
+  # Apply coloring for each max row
+  for (row in max_rows) {
+    gt_table <- gt_table %>%
+      tab_style(
+        style = cell_fill(color = color_map[row]),
+        locations = cells_body(
+          columns = col,
+          rows = Typ == row
+        )
+      )
+  }
+}
+
+gt_table
 ```
 
 # Bostädernas ålder
