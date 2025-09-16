@@ -353,7 +353,7 @@ För att förstå balansen mellan befolkningsutveckling och bostadsbyggande redo
 knitr::include_graphics("Figurer/nybygg_region.svg")
 ```
 
-In med kommentarer här
+Befolkningsökningen i länet var väldigt hög mellan 2016 och 2019, med en dipp år 2020, men har sedan bröjat röra sig mot nivåer som liknar början på 2010-talet. Antalet nybyggda bostäder har över en stor del av perioden följt befolkningsökningen, men släpande med ett år, detta förändras dock efter 2021 där antalet nybyggda bostäder fortsätter att gå upp trots att befolkningsförändringen sjunker. 
 
 ### Kommunnivå
 
@@ -642,6 +642,8 @@ Figuren visar fördelningen av bostäder per hustyp och byggnadsperiod i regione
 #| label: fig-alder
 byggnadsperiod_region()
 ```
+
+I länet så har ett stort antal småbostadshus byggts innan 1930 eller mellan 1960-1990, många av flerbostadshusen i länet byggdes mellan 1941-1970 eller 2011 och framåt. 
 
 ## Kommuner
 
