@@ -26,7 +26,9 @@ install_and_load <- function() {
     'forcats',
     'scales',
     'tibble',
-    'gtExtras'
+    'gtExtras',
+    'RColorBrewer',
+    'magick'
   )
   
   # Installera och ladda CRAN-paket

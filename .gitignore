@@ -4,8 +4,10 @@
 .Ruserdata
 *.Rproj
 /.quarto/
+# Bilder som ej får läsas upp
+Mediabank/
 
-
+*.gpkg
 # OS
 .DS_Store
 Thumbs.db
