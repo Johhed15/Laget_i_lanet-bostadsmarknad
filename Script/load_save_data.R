@@ -377,3 +377,15 @@ write.csv(df_hyra, "Data/df_hyra.csv", row.names = F)
 }
 
 
+
+######### KOLLLAAA INN !!!!!!!!!!!!
+
+## DESO 
+# Antal personer efter region och upplåtelseform. År 2012 - 2024
+# https://www.statistikdatabasen.scb.se/pxweb/sv/ssd/START__HE__HE0111__HE0111YDeSo/HushallT33Deso/
+
+
+# Antal personer efter region och hustyp. År 2012 - 2024
+# https://www.statistikdatabasen.scb.se/pxweb/sv/ssd/START__HE__HE0111__HE0111YDeSo/HushallT32Deso/
+
+
