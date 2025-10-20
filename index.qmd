@@ -84,7 +84,7 @@ bedom_av_bostadsmarknad %>%
       palette = c( "#4AA271","#D0342C"), # choose colors you like
       domain = c("Underskott på bostadsmarknaden", "Balans på bostadsmarknaden")
     )
-  )
+  ) %>% tab_options(table.font.names = "sourcesanspro")
 
 df_supplatelse <- read.csv('Data/df_supplatelse.csv')
 max_ar <-  as.integer(max(df_supplatelse$år))
@@ -141,7 +141,7 @@ df_bedom %>%
         'Brist på bostäder'
       )
     )
-  )
+  ) %>% tab_options(table.font.names = "sourcesanspro")
 
 ```
 
@@ -170,7 +170,7 @@ tot_ledigt %>%
       palette = c("#B81867", "#F4DCE8"),  
       domain = NULL                 # scales automatically from min to max
     )
-  )
+  ) tab_options(table.font.names = "sourcesanspro")
 
 ```
 
@@ -228,7 +228,7 @@ gt_table <- gt(flerbostadshus_wide) %>%
     alpha = 0.3,
     font_weight = "bold",
     font_color = "#000000"
-  )
+  ) %>% tab_options(table.font.names = "sourcesanspro")
 
 gt_table
 ```
@@ -257,9 +257,6 @@ knitr::include_graphics("Figurer/flerbostadsarea.svg")
 I @fig-storlekfordelning syns fördelningen över bostadsarea i flerbostadshus för varje kommun, det som går att utläsa är att Knivsta och Uppsala har en jämnare fördelning mellan storleken på bostadsareorna. Heby, Tierp, Älvkarleby och Östhammar har en mer ojämn fördelning där de flesta flerbostadslägenheterna är mellan 51 och 80 kvadratmeter stora .
 
 ## Upplåtelseformsutveckling från 2013 - `r max_ar`
-
-
-
 
 **Datakällor och definitioner av upplåtelseformer**
 
@@ -343,6 +340,7 @@ for (r in unique(kommuner)) {
 Alla kommuner har en positiv trend för det totala antalet lägenheter och småhus mellan 2013 och `r max_ar`, men det skiljer sig i vilka typer av upplåtelseformer det är som är vanligast, ökar mest och i hur stor ökningen är.
 
 ## Befolkningsförändring i relation till färdigställda bostäder
+
 ```{r}
 #| fig-cap: "Bygg"
 #| label: fig-ill_Bygg
@@ -353,8 +351,6 @@ image_read("Mediabank/Bygg.png") %>%
 ```
 
 För att förstå balansen mellan befolkningsutveckling och bostadsbyggande redovisas här hur antalet färdigställda bostäder i länet utvecklats i relation till den årliga befolkningsförändringen. Befolkningsförändringen definieras som skillnaden i folkmängd vid årets början och slut. Jämförelsen visar hur nyproduktionen av bostäder motsvarar det ökade befolkningsunderlaget.
-
-
 
 ### Regionnivå
 
@@ -476,7 +472,7 @@ df_kvot %>%
        palette = c("#F4DCE8", "#B81867"),  # low = red, high = green
       domain = NULL                 # automatically scales from min to max
     )
-  )
+  ) %>% tab_options(table.font.names = "sourcesanspro")
 ```
 
 De flesta kommunerna har en basårskvot på 1.6, Håbo och Knivsta sticker ut med en något högre kvot runt 1.8.
@@ -628,7 +624,7 @@ color_map <- c(
 gt_table <- gt(table_df2, rowname_col = "Typ") %>%
   tab_header(
     title = "Antal områden där upplåtelseformen är vanligast per kommun"
-  )
+  ) %>% tab_options(table.font.names = "sourcesanspro")
 
 # Highlight the highest value per column
 for (col in colnames(table_df2)[-1]) {  # skip 'Typ' column
