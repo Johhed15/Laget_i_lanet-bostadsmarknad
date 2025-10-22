@@ -432,8 +432,12 @@ image_read("Mediabank/Bygg2.png") %>%
   image_ggplot(interpolate = TRUE)
 ```
 
+Det uppskattade behovet beräknas sedan för varje år och kommun enligt: 
+
+$$\text{Uppskattat bostadsbehov av nya bostäder}=\frac{\text{Antal vuxna över 20}}{\text{Bostadsbristkvot}}$${#eq-bostadsbehov}
+
 ::: {.callout-note collapse="true"}
-## Exempel på beräkning av bostadsbristkvoten
+## Exempel på beräkning med bostadsbristkvoten
 
 -   Antag att bostadsbristkvoten för en kommun är 1,5
 
@@ -487,6 +491,7 @@ De flesta kommunerna har en basårskvot på 1.6, Håbo och Knivsta sticker ut me
 Siffrorna som presenteras under varje diagram visar differensen mellan antal nybyggda bostäder och det uppskattade behovet enligt Hyresgästföreningens modell. Ett negativt värde indikerar bostadsbrist, medan ett positivt värde visar att nybyggnationen överstiger behovet.
 
 $$\text{Bostadsdifferens} = \text{Nybyggda bostäder} - \text{Uppskattat behov}$$
+
 
 ::: panel-tabset
 ```{r, results='asis'}
@@ -572,12 +577,13 @@ for (r in sort(kommuner)) {
 
 Bostadsbrist råder varje gång den gula linjen "Uppskattat bostadsbehov" visar ett högre antal än de gråa staplarna som visar det totala antalet nybyggda bostäder.
 
-
-
-
 ### Prognos från kvoter
 
 Genom att använda bostadsbristkvoten och SCB's @SCB2024befolkning prognoser för befolkningsframskrivningar så har ett uppskattat behov av nya bostäder tagits fram, detta kan ses som en simpel variant av den som SCB själva gör på beställning @scb2025hushallsprognoser.
+
+Prognosen beräknas likt @eq-bostadsbehov, men att istället för att använda de faktiskt antal människor över 20 per kommun, så används prognosen för antalet invånare över 20 för de kommande 20 åren.
+
+$$\text{Uppskattat behov av nya bostäder} = \frac{\text{Prognos för befolkningsförändring}} {\text{Bostadsbristkvot}}$$
 
 ::: panel-tabset
 ```{r, results='asis'}
@@ -595,8 +601,6 @@ for (r in sort(kommuner)) {
 }
 ```
 :::
-
-
 
 # Upplåtelseform på DeSo-nivå
 

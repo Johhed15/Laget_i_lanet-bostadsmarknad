@@ -528,7 +528,6 @@ uppskatt_behov <- function(){
   
   
 }
-uppskatt_behov()
 ######### Deso upplåtelseform#######
 
 deso_upplat <- function(){
@@ -1042,4 +1041,3 @@ prognos_behov <- function(){
   
   
 }
-prognos_behov()
