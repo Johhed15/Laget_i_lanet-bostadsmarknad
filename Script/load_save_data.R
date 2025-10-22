@@ -274,7 +274,7 @@ url <- 'https://api.scb.se/OV0104/v1/doris/sv/ssd/START/BE/BE0101/BE0101A/Befolk
 pxweb_query_list <-
   list('Region' = kommunkod,
        'Alder' = c(as.character(20:99), "100+"), # 20 år och uppåt
-       'Tid' = "2006" , # basåret
+       'Tid' = c("2006","2024") , # basåret
        'ContentsCode' = 'BE0101N1' # folkmängd
   )
 
@@ -378,6 +378,10 @@ write.csv(df_hyra, "Data/df_hyra.csv", row.names = F)
 
 
 
+
+
+
+
 ######### KOLLLAAA INN !!!!!!!!!!!!
 
 ## DESO 
@@ -387,5 +391,32 @@ write.csv(df_hyra, "Data/df_hyra.csv", row.names = F)
 
 # Antal personer efter region och hustyp. År 2012 - 2024
 # https://www.statistikdatabasen.scb.se/pxweb/sv/ssd/START__HE__HE0111__HE0111YDeSo/HushallT32Deso/
+
+########## Befolkningsprognoser ###########
+
+{
+  url <- 'https://api.scb.se/OV0104/v1/doris/sv/ssd/START/BE/BE0401/BE0401A/BefProgRegFakN'
+  
+  px_get_list <- list(Region = kommunkod,
+                      InrikesUtrikes = '*',
+                      Kon = '*',
+                      Alder = '*',
+                      ContentsCode = '*',
+                      Tid = '*')
+  
+  
+  px_get <- pxweb_get(url,px_get_list)
+  
+  # laddar data och gör till rätt format
+  df_folkmangdfram <- as.data.frame(px_get, column.name.type = "text", variable.value.type = "text")
+  df_folkmangdfram$ålder <- gsub("\\+", "", df_folkmangdfram$ålder)
+  df_folkmangdfram$ålder <- as.integer(gsub(" år", "", df_folkmangdfram$ålder))
+  df_folkmangdfram$år = as.integer(df_folkmangdfram$år)
+  df_folkmangdfram <- df_folkmangdfram %>% filter(`inrikes/utrikes född` == "inrikes och utrikes födda")
+  
+  # sparar data med variabler: region, unrikes/utrikes född, kön, ålder, tid , antal
+  write.csv(df_folkmangdfram, "Data/df_folkmangdfram.csv", row.names = F)
+}
+
 
 

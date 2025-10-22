@@ -1,6 +1,7 @@
 ---
 title: "Bostadsbestånd och bostadsmarknad i Uppsala län"
 lang: sv 
+bibliography: references.bib
 format: 
   html:
     self-contained: true
@@ -21,6 +22,8 @@ editor: visual
 # Inledning
 
 Här ska antingen en inledning eller kort sammanfattning in!
+
+Data som används i rapporten är hämtat från @scb_statistikdatabasen om annat inte uppges.
 
 ```{r setup, include = FALSE, message=FALSE, warnings=FALSE}
 # använda paket(plus några extra som har testas)
@@ -54,7 +57,7 @@ bedom_av_bostadsmarknad <- df_bostadsverket[,c(4,6)]
 
 # Vad säger kommunerna själva år 2025?
 
-Kommunernas egna bedömningar av bostadsmarknadsläget bygger på Bostadsmarknadsenkäten 2025. Här får kommunerna ange om det råder balans, underskott eller överskott på bostäder i förhållande till efterfrågan. Bedömningarna ger en samlad bild av hur tillgången till bostäder upplevs lokalt och hur väl den möter invånarnas behov.
+Kommunernas egna bedömningar av bostadsmarknadsläget bygger på Bostadsmarknadsenkäten 2025 @boverket2025bme. Här får kommunerna ange om det råder balans, underskott eller överskott på bostäder i förhållande till efterfrågan. Bedömningarna ger en samlad bild av hur tillgången till bostäder upplevs lokalt och hur väl den möter invånarnas behov.
 
 På frågan "Hur bedömer ni för närvarande kommunens bostadsmarknadsläge?(I kommunen som helhet)", så har kommunerna i regionen svarat såhär inför 2025.
 
@@ -170,7 +173,7 @@ tot_ledigt %>%
       palette = c("#B81867", "#F4DCE8"),  
       domain = NULL                 # scales automatically from min to max
     )
-  ) tab_options(table.font.names = "sourcesanspro")
+  ) %>%  tab_options(table.font.names = "sourcesanspro")
 
 ```
 
@@ -412,7 +415,7 @@ for (r in unique(kommuner)) {
 
 ### Uppskattat bostadsbehov
 
-Hyresgästföreningen (2025) har utvecklat en förenklad metod för att beräkna bostadsbrist på kommunnivå. Metoden bygger på offentligt tillgänglig statistik och är en anpassning av Boverkets modell för byggbehov.
+@hyresgastforeningen2025raknamedbostadsbrist har utvecklat en förenklad metod för att beräkna bostadsbrist på kommunnivå. Metoden bygger på offentligt tillgänglig statistik och är en anpassning av Boverkets modell för byggbehov.
 
 Metoden använder år 2006 som referensår, eftersom bostadsmarknaden då bedöms ha varit i balans. Från detta år beräknas en kvot som visar förhållandet mellan antalet vuxna över 20 år och antalet bostäder i kommunen:
 
@@ -568,6 +571,32 @@ for (r in sort(kommuner)) {
 :::
 
 Bostadsbrist råder varje gång den gula linjen "Uppskattat bostadsbehov" visar ett högre antal än de gråa staplarna som visar det totala antalet nybyggda bostäder.
+
+
+
+
+### Prognos från kvoter
+
+Genom att använda bostadsbristkvoten och SCB's @SCB2024befolkning prognoser för befolkningsframskrivningar så har ett uppskattat behov av nya bostäder tagits fram, detta kan ses som en simpel variant av den som SCB själva gör på beställning @scb2025hushallsprognoser.
+
+::: panel-tabset
+```{r, results='asis'}
+
+for (r in sort(kommuner)) {
+
+  file_name <- paste0("Figurer/plot_bostadsprognos_", r, ".svg")
+  cat("## ", r, "\n\n", sep = "")
+  cat('<img src="', file_name, '" alt="', r, '" style="width:100%; max-width:800px; height:100%;">\n\n', sep = "")
+  cat("\n") 
+  # Download button
+  cat('<p><a href="', file_name, '" download class="btn btn-primary">Ladda ner bilden</a></p>\n\n', sep = "")
+  
+
+}
+```
+:::
+
+
 
 # Upplåtelseform på DeSo-nivå
 
