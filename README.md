@@ -1,4 +1,4 @@
-# Bostadsbestånd och bostadsmarknad i Uppsala län
+# DRAFT TILL Bostadsbestånd och bostadsmarknad i Uppsala län
 
 Detta är ett Quarto-projekt som visualiserar och analyserar bostadsbestånd och bostadsmarknad i Uppsala län.
 
