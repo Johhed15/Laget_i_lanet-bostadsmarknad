@@ -7,11 +7,16 @@
 # Bilder som ej får läsas upp
 Mediabank/
 
+# Data
+Data/
+\Data
+bostad.txt
+
 *.gpkg
 # OS
 .DS_Store
 Thumbs.db
 
 # Quarto
-
+\_site
  
