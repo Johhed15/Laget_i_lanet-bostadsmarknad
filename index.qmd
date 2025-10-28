@@ -21,7 +21,11 @@ editor: visual
 
 # Inledning
 
-Här ska antingen en inledning eller kort sammanfattning in!
+Uppsala läns bostadsmarknad är viktig att förstå för att förstå länets rumsliga lägesbild. I detta kapitel presenteras aktuell statistik om bland annat bostadsbyggande, bostadsbrist och bostäders ålder.
+
+Rapporten fokuserar inte endast på den länsövergripande statistiken utan även på kommunernas statistik. Detta för att kunna se skillnaderna inom länet.
+
+Kapitlet visar att i Uppsala läns präglas bostadsmarknad av långvariga underskott, låga vakanser, ökade hyresnivåer i tillväxtkommuner och tydliga skillnader i upplåtelseformer mellan kommunerna.
 
 Data som används i rapporten är hämtat från @scb_statistikdatabasen om annat inte uppges.
 
@@ -432,9 +436,9 @@ image_read("Mediabank/Bygg2.png") %>%
   image_ggplot(interpolate = TRUE)
 ```
 
-Det uppskattade behovet beräknas sedan för varje år och kommun enligt: 
+Det uppskattade behovet beräknas sedan för varje år och kommun enligt:
 
-$$\text{Uppskattat bostadsbehov av nya bostäder}=\frac{\text{Antal vuxna över 20}}{\text{Bostadsbristkvot}}$${#eq-bostadsbehov}
+$$\text{Uppskattat bostadsbehov av nya bostäder}=\frac{\text{Antal vuxna över 20}}{\text{Bostadsbristkvot}}$$ {#eq-bostadsbehov}
 
 ::: {.callout-note collapse="true"}
 ## Exempel på beräkning med bostadsbristkvoten
@@ -450,7 +454,7 @@ Om det faktiska antalet nybyggda bostäder är lägre än det beräknade behovet
 #| label: "tbl-kvot"
 #| tbl-cap: ""
 
-folkmangd <- read.csv('Data/df_folkmangd.csv')
+folkmangd <- read.csv('Data/df_folkmangd.csv') %>% filter(år == 2006)
 folkmangd_tot <- folkmangd %>% group_by(region) %>% 
                   summarise(Total_folkmängd = sum(Folkmängd), .groups = 'drop') 
 
@@ -491,7 +495,6 @@ De flesta kommunerna har en basårskvot på 1.6, Håbo och Knivsta sticker ut me
 Siffrorna som presenteras under varje diagram visar differensen mellan antal nybyggda bostäder och det uppskattade behovet enligt Hyresgästföreningens modell. Ett negativt värde indikerar bostadsbrist, medan ett positivt värde visar att nybyggnationen överstiger behovet.
 
 $$\text{Bostadsdifferens} = \text{Nybyggda bostäder} - \text{Uppskattat behov}$$
-
 
 ::: panel-tabset
 ```{r, results='asis'}
@@ -581,7 +584,7 @@ Bostadsbrist råder varje gång den gula linjen "Uppskattat bostadsbehov" visar 
 
 Genom att använda bostadsbristkvoten och SCB's @SCB2024befolkning prognoser för befolkningsframskrivningar så har ett uppskattat behov av nya bostäder tagits fram, detta kan ses som en simpel variant av den som SCB själva gör på beställning @scb2025hushallsprognoser.
 
-Prognosen beräknas likt @eq-bostadsbehov, men att istället för att använda de faktiskt antal människor över 20 per kommun, så används prognosen för antalet invånare över 20 för de kommande 20 åren.
+Prognosen beräknas likt @eq-bostadsbehov, men att istället för att använda de faktiskt antal invånare över 20 per kommun, så används prognosen för antalet invånare över 20 för de kommande 20 åren.
 
 $$\text{Uppskattat behov av nya bostäder} = \frac{\text{Prognos för befolkningsförändring}} {\text{Bostadsbristkvot}}$$
 

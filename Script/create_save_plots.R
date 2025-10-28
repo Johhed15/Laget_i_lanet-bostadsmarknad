@@ -861,21 +861,16 @@ hyres_utveck <- function(){
         marker = list(
           color = kommun_colors[[kommun]],
           size = 6
-        ),
-        hovertemplate = paste(
-          "<b>%{fullData.name}</b><br>",
-          "År: %{x}<br>",
-          "Medianhyra: %{y} kr/kvm<br>",
-          "<extra></extra>"
         )
-      )
+        )
+      
   }
   
   # Konfigurera layout
   fig <- fig %>%
     layout(
       title = list(
-        text = paste("Medianhyresutveckling per kommun, 2016-", ar_max),
+        text = paste("Medianhyresutveckling per kommun, 2016 -", ar_max),
         font = list(size = 18, family = "Arial", color = "black")
       ),
       xaxis = list(
@@ -898,27 +893,25 @@ hyres_utveck <- function(){
         y = 1,
         font = list(size = 12)
       ),
-      hovermode = 'closest',
+      hovermode = "x unified",
       plot_bgcolor = 'white',
       paper_bgcolor = 'white',
       margin = list(l = 60, r = 150, t = 80, b = 60)
     )
   
-  
   # En mer interaktiv version där du kan klicka på legendan för att highlighta en specifik kommun
-  fig_highlight <- fig %>%
+  fig <- fig %>%
     layout(
       legend = list(
-        itemclick = "toggleothers",  # Klicka för att highlighta endast den kommunen
-        itemdoubleclick = "toggle",   # Dubbelklicka för att visa/dölja
         orientation = "v",
         x = 1.05,
         y = 1,
         font = list(size = 12)
       )
     )
-  fig_highlight <- config(
-    fig_highlight,
+  
+  fig <- config(
+    fig,
     modeBarButtonsToRemove = c(
       'zoom2d',     # zoom button
       'pan2d',      # pan button
@@ -930,8 +923,9 @@ hyres_utveck <- function(){
       format = "svg",
       filename = "hyres_utveckling"),
     displaylogo = FALSE)   # remove plotly logo/link
+  
   # Visa den interaktiva versionen
-  fig_highlight
+  fig
 }
 
 
