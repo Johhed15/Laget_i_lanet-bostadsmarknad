@@ -181,7 +181,7 @@ tot_ledigt %>%
 
 ```
 
-Alla kommuner har en låg andel lägenheter som står lediga, lägst har Knivsta och Uppsala på 0,0% och högst har Tierp på 0,2%.
+Alla kommuner har en låg andel lägenheter som står lediga, lägst har Knivsta och Uppsala på 0,0% och högst har Tierp på 2,1%.
 
 ## Andel hyresrätt per kommun
 
@@ -703,7 +703,7 @@ I länet så har ett stort antal småbostadshus byggts innan 1930 eller mellan 1
 
 För att se byggnadsperioderna per hustyp för varje enskild kommun så går det i @fig-alderkommun att bläddra mellan kommunerna i listan till vänster.
 
-```{r,  fig.cap=''}
+```{r}
 #| fig-cap: ""
 #| label: fig-alderkommun
 
@@ -773,38 +773,60 @@ hyres_utveck()
 
 Medianhyrorna visar en tydlig polarisering mellan kommunernas hyresnivåer under perioden där de fyra kommunerna Heby, Tierp, Älvkarleby och Östhammar har haft en begränsad hyresökning och ligger kvar på relativt låga nivåer. I kontrast har Enköping, Håbo, Knivsta och Uppsala ökat mer, där särskilt Knivsta har en markant utveckling från 87 kr/kvm år 2016 till 151 kr/kvm år `r max_ar` - alltså en ökning på över 70%. Detta innebär att Knivsta gått från fjärde till högsta medianhyra i länet och nu ligger 47-54 kr/kvm över de fyra kommunerna med lägst hyror. Den stora ökningen i Knivsta behöver inte betyda att alla hyror i kommunen har ökat kraftigt, utan det kan vara så att en stor del av de nybyggda bostäderna har en hög hyra vilket drar upp medianen.
 
-```{r}
-# Befolkningsstatistik antal personer efter region, förändringar, period, kön och år 2025
-url <- 'https://api.scb.se/OV0104/v1/doris/sv/ssd/START/BE/BE0101/BE0101G/BefforandrKvRLKCKM'
+## Fastighetsprisutveckling
+
+Data är hämtat från @kolada som hänvisar vidare till @scb_statistikdatabasen och @fastighetsprisregistret. 
+
+Kvadratmeterpriser för bostadsrätter beräknas utifrån genomsnittliga areor per kommun, antagna som konstanta över tid. För småhus och fritidshus används individuella köp från SCB:s Fastighetsprisregister, där skillnaden avgörs av folkbokföring året före försäljningen. Definitionerna ändrades något 2015, vilket kan påverka jämförelser över tid.
 
 
-pxweb_query_list <-
-  list('Region' = kommunkod,
-       'Forandringar'= c('115', '130', '140','150','160','170','175', '180','190'),
-       'Period' = c("halv1","halv2"),
-       'Kon' = 'TotSa',
-       'Tid' = '*',
-       'ContentsCode' = '*'
-  )
+
+::: panel-tabset
+```{r, results='asis'}
 
 
-# Download data 
-px_data <- pxweb_get(url = url,pxweb_query_list)
+# printar både plot och en kort kommentar per kommun
 
-
-# Convert to data.frame 
-df_befolk_halvar <- as.data.frame(px_data, column.name.type = "text", variable.value.type = "text")
-
-df_befolk_halvar <- df_befolk_halvar %>% drop_na()
-# imputerar ett saknande värde till samma som året innan och efter
-
-
+for (r in unique(kommuner)) {
+  file_name <- paste0("Figurer/fastighetspris_", r, ".svg")
+  cat("## ", r, "\n", sep = "")
+  cat('<img src="', file_name, '" alt="', r, '" style="width:100%; max-width:800px; height:100%;">\n', sep = "")
+  # kommentar (slå upp i tabellen)
+  # Download button
+  cat('<p><a href="', file_name, '" download class="btn btn-primary">Ladda ner bilden</a></p>\n\n', sep = "")
+  
+}
 ```
+:::
 
-```{r}
-# Befolkningsstatistik, antal personer efter region, förändringar, period, kön och år
+Alla kommuner visar en positiv fastighetsprisutveckling, med priser som ökat kontinuerligt under tidsperioden. Det högsta priset per fastighetskategori är för fritidshus för samtliga kommuner utom Uppsala, där småhus är den kategori som haft högst priser de senaste åren. 
 
-url <- 'https://api.scb.se/OV0104/v1/doris/sv/ssd/START/BE/BE0101/BE0101G/BefforandrKvRLK'
+Älvkarleby och Östhammar är de två kommunerna som har störst visuell skillnad mellan kategorierna, högst priser per kvadratmeter i länet hittas i Håbo och Knivsta och lägst priser i Heby och Älvkarleby. 
+
+# Trångboddhet
+
+Data är hämtat från @kolada som hänvisar vidare till @scb_statistikdatabasen. 
+
+Trångboddhet mäts enligt SCB:s normer. Enligt norm 2 räknas hushåll med fler än två personer per rum (utan kök/vardagsrum) som trångbodda, medan norm 3 gäller vid fler än en person per rum, men att sammanboende par förutsätts dela sovrum. Ensamhushåll räknas inte som trångbodda. Data avser personer i flerbostadshus exklusive specialbostäder som avser studentbostäder, bostäder för äldre/funktionshindrade och övriga specialbostäder.
+
+::: panel-tabset
+```{r, results='asis'}
 
 
+# printar både plot och en kort kommentar per kommun
+
+for (r in unique(kommuner)) {
+  file_name <- paste0("Figurer/trangboddhet_", r, ".svg")
+  cat("## ", r, "\n", sep = "")
+  cat('<img src="', file_name, '" alt="', r, '" style="width:100%; max-width:800px; height:100%;">\n', sep = "")
+  # kommentar (slå upp i tabellen)
+  # Download button
+  cat('<p><a href="', file_name, '" download class="btn btn-primary">Ladda ner bilden</a></p>\n\n', sep = "")
+  
+}
 ```
+:::
+
+I Heby hittas den högsta trångboddheten för bägge normerna, där över 50 % av männen i flerbostadshus med sammanboende anses bo trångbott enligt norm 3, Älvkarleby är den kommun som har näst högst värden för norm 3, medan Enköping har näst högst värden för norm 2.
+
+Kvinnor bor generellt mindre trångbott än män i samtliga kommuner, men skillnaden mellan könen varierar beroende på norm och kommun. 

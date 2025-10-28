@@ -658,7 +658,7 @@ fig <- plot_ly(
          xaxis = list(title = "Byggnadsperiod"),
          yaxis = list(title = "Antal")
   )
-fig <- config(
+fig <- plotly::config(
   fig,
   modeBarButtonsToRemove = c(
     'zoom2d',     # zoom button
@@ -767,7 +767,7 @@ byggnadsperiod_kommun <- function(){
         )
       )
     )
-  fig <- config(
+  fig <- plotly::config(
     fig,
     modeBarButtonsToRemove = c(
       'zoom2d',     # zoom button
@@ -910,7 +910,7 @@ hyres_utveck <- function(){
       )
     )
   
-  fig <- config(
+  fig <- plotly::config(
     fig,
     modeBarButtonsToRemove = c(
       'zoom2d',     # zoom button
@@ -1035,3 +1035,82 @@ prognos_behov <- function(){
   
   
 }
+
+
+
+###### Prisutveckling ########
+
+prisfastighet <- function(){
+  # Läser in data
+  df <- read.csv("Data/fastighetspris.csv")
+  
+  # fixar snyggare titlar: 
+  df$title <- gsub("Fastighetspris |, kr/kvm", "", df$title)
+  
+  df$title <- tools::toTitleCase(df$title)
+  
+  # Färgtema
+  cols <- c('Bostadsrätt' = "#F9B000",
+            'Fritidshus' = "#4AA271",
+            'Småhus' = "#019CD7")
+  
+  # loopar över alla kommuner
+  for (r in unique(df$municipality)){
+    
+    temp <- df %>% filter(municipality == r)
+    
+    # Tidserieplots
+   p<- ggplot(temp, aes(x = year, y = value, color= title))+
+      geom_line(linewidth=1.5) + geom_point(size=3)+ 
+      labs(title=paste0('Fastighetspris i ', r, '\nKr/kvm'), 
+           y='kr/kvm', x='', color = '')+
+      scale_color_manual(values=cols)+ 
+     scale_x_continuous(breaks=seq(min(df$year), max(df$year),by=3 ))+
+     theme(legend.position = 'bottom', 
+           axis.text.x = element_text(angle=45))
+   
+   filename <- paste0('Figurer/fastighetspris_',r ,'.svg')
+   ggsave(filename,plot = p,device = "svg", width = 7, height = 5)
+  }
+  
+}
+
+####### Trångboddhet #########
+
+trangbodd <- function(){
+  # Läser in data
+  df <- read.csv("Data/trandboddhet.csv") %>% filter(year == max(year))
+  
+  
+  # fixar snyggare titlar: 
+  df$title <- gsub("Trångboddhet i flerbostadshus, enligt ", "", df$title)
+  df$title <- gsub(", andel \\(%\\)", "", df$title)
+  
+  df$title <- tools::toTitleCase(df$title)
+  
+  df <- df %>% mutate(gender = case_when(gender== 'K'~'Kvinnor',
+                                         gender== 'M'~'Män'))
+  
+  # Färgtema
+  cols <- c('Män' = "#4AA271",
+            'Kvinnor' = "#D57667")
+  
+  # loopar över alla kommuner
+  for (r in unique(df$municipality)){
+    
+    temp <- df %>% filter(municipality == r)
+    
+    # Tidserieplots
+    p<- ggplot(temp, aes(x = gender, y = value, fill= gender))+
+      geom_col() + facet_wrap(~title, ncol=2)+
+      labs(title=paste0('Trångboddhet i flerbostadshus i \n', r), 
+           y='Andel (%)', x='', fill = '')+ylim(0,60)+
+      scale_fill_manual(values=cols)+ 
+      theme(legend.position = 'bottom')
+    
+    filename <-  paste0('Figurer/trangboddhet_',r ,'.svg')
+    ggsave(filename,plot = p,device = "svg", width = 7, height = 5)
+  }
+  
+}
+

@@ -420,3 +420,27 @@ write.csv(df_hyra, "Data/df_hyra.csv", row.names = F)
 
 
 
+
+
+
+####### Kolada fastighetspris ##########
+source("Script/search_kolada.R")
+
+### Fastighetspriser per kommun och år
+{
+  df <- search_and_fetch_kolada("Fastighetspris",kommunkod=kommunkod)
+  
+  df <- df %>% filter(year > 2004, title !="Fastighetspris småhus, tkr")
+
+  write.csv(df, "Data/fastighetspris.csv", row.names = F)
+}
+
+####### Kolada trångboddhet #########
+{
+  df <- search_and_fetch_kolada("Trångboddhet",kommunkod=kommunkod)
+  
+  df <- df %>% filter(gender != 'T')
+  
+  write.csv(df, "Data/trandboddhet.csv", row.names = F)
+}
+

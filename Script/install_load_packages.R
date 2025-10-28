@@ -28,7 +28,10 @@ install_and_load <- function() {
     'tibble',
     'gtExtras',
     'RColorBrewer',
-    'magick'
+    'magick',
+    'rKolada',
+    'httr',
+    'jsonlite'
   )
   
   # Installera och ladda CRAN-paket
