@@ -18,25 +18,26 @@
 ##### Storleksfördelning########
 
 flerbostadsarea <- function(){
-  
+  # Läser in data
   df_bostadsarea <- read.csv('Data/df_bostadsarea.csv')
-  # vektor med lägenhetsstorlekar
+  
+  # vektor med lägenhetsstorlekar så x-axeln blir i rätt prdning
   ordning <- c("< 31 kvm", "31-40 kvm", "41-50 kvm", "51-60 kvm", "61-70 kvm",
                "71-80 kvm", "81-90 kvm", "91-100 kvm", "101-110 kvm",
                "111-120 kvm", "121-130 kvm", "131-140 kvm", "141-150 kvm",
                "191-200 kvm", "> 200 kvm")
   
   
-  # Plockar ut senaste årets data på flerbostadshus
+  # Plockar ut senaste årets data på flerbostadshus och beräknar andel
   flerbostadsarea <- df_bostadsarea %>%  filter(hustyp=='flerbostadshus', år== max(as.numeric(år)), Antal > 0) %>% 
     group_by(region) %>%  mutate(Andel = round((Antal/ sum(Antal))*100),
                                  bostadsarea = factor(bostadsarea, levels = ordning))%>%
     filter(!is.na(bostadsarea)) # tar ej med övrig 
   
-  
+  # Skapar plot över fördelningen
   p <- ggplot(flerbostadsarea, aes(x = bostadsarea, y = Andel, fill = region)) + 
     geom_col() +
-    facet_wrap(vars(region), nrow = 4) +
+    facet_wrap(vars(region), nrow = 4) + # delar på region, 4 rader
     scale_fill_manual(values = kommun_colors) +
     ggtitle("Fördelningen av bostadsarea i flerbostadshus") +
     xlab("Area") +
@@ -46,7 +47,7 @@ flerbostadsarea <- function(){
           text = element_text(family = "sourcesanspro", size = 14),
           axis.title.y = element_text(angle = 0, vjust = 1, hjust = 0.5))
   
-  
+  # sparar som svg
   ggsave('Figurer/flerbostadsarea.svg',plot = p,device = "svg", width = 7, height = 5)
   
 }
@@ -242,22 +243,30 @@ kommun_utv_upp <- function(){
 # region
 
 nybygg_region <- function(){
-  
+  # Läser in data 
   nybyggda <- read.csv('Data/df_nybyggda.csv')
   df_befolkf <- read.csv('Data/df_befolkf.csv')
+  
+  # Summerar antal per år, efter 2012
   tid_df_nybyggda <- df_nybyggda %>% 
     filter( as.numeric(år) > 2012
     ) %>% 
-    group_by(upplåtelseform, år) %>%   # <-- no region grouping
+    group_by(upplåtelseform, år) %>%   
     summarise(nybygg = sum(Antal), .groups = "drop")
+  
+  # Gör om tid till heltal
   tid_df_nybyggda$år <- as.integer(tid_df_nybyggda$år)
+  
+  # Totalt antal nybyggda
   nybyggda_total <- tid_df_nybyggda %>% 
-    group_by(år) %>%   # <-- no region grouping
+    group_by(år) %>%  
     summarise(Total_nybygg = sum(nybygg))
   
+  # Summerar antal personer per år
   tid_df_befolkf <- df_befolkf %>% rename(Antal_personer = Antal.personer) %>%  filter(as.numeric(år) > 2012) %>% 
     group_by(år) %>%  summarise(Total_personer = sum(Antal_personer), .groups = "drop")
   
+  # slår ihop data
   tid_nybygg_befolk <- tid_df_nybyggda %>%
     left_join(tid_df_befolkf, by = "år")%>%
     left_join(nybyggda_total, by = "år")
@@ -271,11 +280,13 @@ nybygg_region <- function(){
       values_to = "Total"
     )
   
+  # Factorvariabel av upplåtelseform
   tid_nybygg_befolk$upplåtelseform <- factor(
     tid_nybygg_befolk$upplåtelseform,
     levels = c("hyresrätt", "bostadsrätt", "äganderätt")  # ordning som du vill ha
   )
   
+  # Tid till heltal
   tid_nybygg_befolk <- tid_nybygg_befolk %>%
     mutate(år = as.integer(år))
   
@@ -299,11 +310,12 @@ nybygg_region <- function(){
     scale_x_continuous(
       breaks = seq(min(tid_nybygg_befolk$år), max(tid_nybygg_befolk$år), by = 2)
     ) +
-    
+    # Färg på kolumnerna
     scale_fill_manual(
       values = upplat_colors,
       labels = tools::toTitleCase(names(upplat_colors))
     ) +
+    # Färg på linjerna
     scale_color_manual(
       values = c("Total_nybygg" = "#B81867",
                  "Total_personer" = "#4AA271"),
@@ -328,11 +340,12 @@ nybygg_region <- function(){
 # Kommun
 
 nybygg_kommun <- function(){
-  
+  # Läser in data 
   nybyggda <- read.csv('Data/df_nybyggda.csv')
   df_befolkf <- read.csv('Data/df_befolkf.csv')
   
-  # Liknande kod som ovan men splittar per kommun
+  # Liknande kod som ovan men summerar per kommun
+  # Summerar antal per kommu och år, efter 2012
   tid_df_nybyggda <- df_nybyggda %>% 
     filter( as.numeric(år) > 2012
     ) %>% 
@@ -411,6 +424,7 @@ nybygg_kommun <- function(){
     p
   }
   
+  # loopar över kommunerna och sparar plot
   for (r in unique(tid_nybygg_befolk$region)) {
     p <- plot_tid_nybygg_befolk(r)
     
@@ -426,7 +440,7 @@ nybygg_kommun <- function(){
 }
 
 
-######## Uppskatat behov av bostäder ###############
+######## Uppskattat behov av bostäder ###############
 
 uppskatt_behov <- function(){
   # Läser in data och skapar set för basår
@@ -436,26 +450,30 @@ uppskatt_behov <- function(){
   
   df_supplatelse <- read.csv('Data/df_supplatelse.csv')
   
-  # Summerar
+  # Summerar totalt antal hushåll
   df_supplatelse_2006 <- df_supplatelse %>% filter(år =='2006') %>% 
     group_by(region) %>% summarise(Total_bostader = sum(Antal), .groups='drop')
   
+  # Slår ihop dataseten
   df_kvot <- left_join(df_supplatelse_2006,folkmangd_tot, by='region' )
+  
   # Beräknar kvoten
   df_kvot$Kvot <- df_kvot$Total_folkmängd / df_kvot$Total_bostader # beräknar kvoten
   
+  # Byter kolumnnamn och läser in data
   colnames(df_kvot) <- c('Region', 'Antal bostäder', 'Antal vuxna', 'Kvot')
   df_nybyggda <- read.csv('Data/df_nybyggda.csv')
   df_befolkf <- read.csv('Data/df_befolkf.csv')
   
   df_nybyggda$år <- as.integer(df_nybyggda$år)
+  
   # Summera nybygg utan upplåtelseform
   tid_df_nybyggda_total <- df_nybyggda %>% 
     filter(as.numeric(år) > 2012) %>% 
     group_by(region, år) %>%   
     summarise(Total_nybygg = sum(Antal), .groups = "drop")
   
-  # Befolkning
+  # Befolkning per kommun och år
   tid_df_befolkf <- df_befolkf %>% 
     rename(Antal_personer = Antal.personer) %>%  
     filter(as.numeric(år) > 2012) %>% 
@@ -477,10 +495,14 @@ uppskatt_behov <- function(){
       names_to = "Typ",
       values_to = "Total"
     )
-  tid_df <- tid_df %>% mutate(år = as.integer(år))
+  
+  tid_df <- tid_df %>% mutate(år = as.integer(år)) # år som heltal
+  
   # Plotfunktion
   plot_tid_nybygg_befolk_tot <- function(kommun_val){
+    # Filtrerar ut data
     df_plot <- tid_df %>% filter(region == kommun_val)
+    
     lines_plot <- lines_df %>% 
       filter(region == kommun_val)  # Bostadsbrist är nu med
     
@@ -515,6 +537,7 @@ uppskatt_behov <- function(){
     p
   }
   
+  # Kör funktionen för för alla kommuner och sparar
   for (r in sort(kommuner)){
     p <- plot_tid_nybygg_befolk_tot(r)
     
@@ -531,7 +554,9 @@ uppskatt_behov <- function(){
 ######### Deso upplåtelseform#######
 
 deso_upplat <- function(){
+  # Läser in data
   df_deso <- read.csv('Data/df_deso.csv')
+  
   suppressMessages({
     suppressWarnings({
       st_layers("DeSO_2025.gpkg")
@@ -540,16 +565,16 @@ deso_upplat <- function(){
     })
   })
   
+  # Byter namn på kolumn så dom matchar och slår ihop
   df_deso <- df_deso %>%
     rename(desokod = region)
   
   deso_sf <- left_join(deso_sf, df_deso, by = "desokod")
   
   
-  
   ## plockar ut vanligaste upplåtelseformen och lägger till andelar när man klickar på regionen.
   
-  #  Mest populär upplåtelseform per DeSO 
+  #  Mest populära upplåtelseform per DeSO 
   mest_popular_upplat <- df_deso %>%
     group_by(desokod) %>%
     slice_max(order_by = Antal, n = 1, with_ties = FALSE) %>%
@@ -592,7 +617,7 @@ deso_upplat <- function(){
     labels = tools::toTitleCase(names(upplat_colors))
   )
   
-  #  Rita kartan 
+  #  Skapa kartan 
   map <- mapview(
     deso_sf_pop,
     zcol = "Popularaste_upplåtelseform",
@@ -602,6 +627,7 @@ deso_upplat <- function(){
     popup = deso_sf_pop$popup
   )
   
+  # Fixar texten i legenden så den inte blir centrerad
   map@map <- map@map %>%
     htmlwidgets::prependContent(
       htmltools::tags$style(
@@ -609,7 +635,7 @@ deso_upplat <- function(){
       )
     )
   
-  
+  # Sparar data till tabell i index.qmd-filen
   suppressMessages({
     suppressWarnings({
       st_write(deso_sf, "Data/deso_sf.gpkg", delete_dsn = TRUE, quiet = TRUE)
@@ -625,64 +651,69 @@ deso_upplat <- function(){
 
 # region
 byggnadsperiod_region <- function(){
-  
+  # Läser in data
   df_byggnadsperiod <- read.csv('Data/df_byggnadsperiod.csv')
   
-df_byggnadsperiod$år <- as.integer(df_byggnadsperiod$år)
-df_byggnadsperiod_plot <- df_byggnadsperiod%>%filter(byggnadsperiod != 'uppgift saknas', år== max(as.numeric(år))) %>%  
-  group_by(hustyp, byggnadsperiod) %>% 
-  summarise(Total = sum(Antal),.groups = "drop")
-
-
-df_byggnadsperiod_plot <- df_byggnadsperiod_plot %>%
-  mutate(hustyp_label = tools::toTitleCase(hustyp))
-# Egna färger för hustyp
-my_colors <- c(
-  "Småhus" = "#019CD7",
-  "Flerbostadshus" = "#D57667",
-  "Övriga Hus" = "#6F787E"
-)
-
-
-fig <- plot_ly(
-  data = df_byggnadsperiod_plot,
-  x = ~byggnadsperiod,
-  y = ~Total,
-  color = ~hustyp_label,
-  colors = my_colors,
-  type = "bar"
-) %>%
-  layout(margin = list(t = 100),
-         barmode = "group",   # staplar bredvid varandra (alt. "stack")
-         title = "Byggnadsperioder per hustyp år 2024",
-         xaxis = list(title = "Byggnadsperiod"),
-         yaxis = list(title = "Antal")
+  # år som heltal och summerar antalet per period och typ
+  df_byggnadsperiod$år <- as.integer(df_byggnadsperiod$år)
+  df_byggnadsperiod_plot <- df_byggnadsperiod%>%filter(byggnadsperiod != 'uppgift saknas', år== max(as.numeric(år))) %>%  
+    group_by(hustyp, byggnadsperiod) %>% 
+    summarise(Total = sum(Antal),.groups = "drop")
+  
+  # Gör om titlarna 
+  df_byggnadsperiod_plot <- df_byggnadsperiod_plot %>%
+    mutate(hustyp_label = tools::toTitleCase(hustyp))
+  
+  # Egna färger för hustyp
+  my_colors <- c(
+    "Småhus" = "#019CD7",
+    "Flerbostadshus" = "#D57667",
+    "Övriga Hus" = "#6F787E"
   )
-fig <- plotly::config(
-  fig,
-  modeBarButtonsToRemove = c(
-    'zoom2d',     # zoom button
-    'pan2d',      # pan button
-    'select2d',   # box select
-    'lasso2d',    # lasso select
-    'zoomIn2d',   # zoom in
-    'zoomOut2d'   # zoom out
-  ),toImageButtonOptions = list(
-    format = "svg",
-    filename = "byggnadsperiod_region"),
-  displaylogo = FALSE)   # remove plotly logo/link
-fig
+  
+  # skapar plot
+  fig <- plot_ly(
+    data = df_byggnadsperiod_plot,
+    x = ~byggnadsperiod,
+    y = ~Total,
+    color = ~hustyp_label,
+    colors = my_colors,
+    type = "bar"
+  ) %>%
+    layout(margin = list(t = 100),
+           barmode = "group",   # staplar bredvid varandra (alt. "stack")
+           title = "Byggnadsperioder per hustyp år 2024",
+           xaxis = list(title = "Byggnadsperiod"),
+           yaxis = list(title = "Antal")
+    )
+  
+  # Tar bort knappar från plotly 
+  fig <- plotly::config(
+    fig,
+    modeBarButtonsToRemove = c(
+      'zoom2d',     # zoom button
+      'pan2d',      # pan button
+      'select2d',   # box select
+      'lasso2d',    # lasso select
+      'zoomIn2d',   # zoom in
+      'zoomOut2d'   # zoom out
+    ),toImageButtonOptions = list(
+      format = "svg",
+      filename = "byggnadsperiod_region"),
+    displaylogo = FALSE)   # remove plotly logo/link
+  
+  fig
 }
 
 # kommun
 byggnadsperiod_kommun <- function(){
-  
+  # Läser in data
   df_byggnadsperiod <- read.csv('Data/df_byggnadsperiod.csv')
   
-  
-  
+  # år till heltal
   df_byggnadsperiod$år <- as.integer(df_byggnadsperiod$år)
   
+  # Summerar per kommun, period och typ
   df_byggnadsperiod_plot <- df_byggnadsperiod%>%filter(byggnadsperiod != 'uppgift saknas', år== max(as.numeric(år))) %>%  
     group_by(hustyp, byggnadsperiod, region) %>% 
     summarise(Total = sum(Antal),.groups = "drop")%>%
@@ -698,7 +729,7 @@ byggnadsperiod_kommun <- function(){
     "Övriga Hus" = "#6F787E"
   )
   
-  
+  # skapar plot
   fig <- plot_ly()
   
   kommuner <- unique(df_byggnadsperiod_plot$region)
@@ -709,10 +740,14 @@ byggnadsperiod_kommun <- function(){
   fig <- plot_ly()
   ar_max <- max(as.integer(df_byggnadsperiod$år))
   
+  # loopar över alla kommuner
   for (k in kommuner) {
+    # Filtrerar kommunen
     filtered <- df_byggnadsperiod_plot %>% filter(region == k)
+    # antal spår som kommer fyllas
     n_spår <- n_distinct(filtered$hustyp_label)
     
+    # Lägger in bars
     fig <- fig %>%
       add_bars(
         data = filtered,
@@ -720,13 +755,14 @@ byggnadsperiod_kommun <- function(){
         y = ~Total,
         color = ~hustyp_label,
         colors = my_colors,
-        visible = ifelse(k == kommuner[1], TRUE, FALSE)
+        visible = ifelse(k == kommuner[1], TRUE, FALSE) # Första regionen som visas från början
       )
-    
+    # Fyller listan med med antal spår per kommun
     spår_per_kommun[[k]] <- idx:(idx + n_spår - 1)
-    idx <- idx + n_spår
+    idx <- idx + n_spår 
   }
   
+  # Layout på plotten med titlar och dropdown
   fig <- fig %>%
     layout(
       margin = list(t = 100),
@@ -739,16 +775,16 @@ byggnadsperiod_kommun <- function(){
       # Dropdown
       updatemenus = list(
         list(
-          buttons = lapply(kommuner, function(k) {
+          buttons = lapply(kommuner, function(k) { # loopar över alla kommuner
             vis <- rep(FALSE, length(unlist(spår_per_kommun)))
-            vis[spår_per_kommun[[k]]] <- TRUE
+            vis[spår_per_kommun[[k]]] <- TRUE # Fyller i med true på rätt plats()
             list(
-              method = "update",
+              method = "update", 
               args = list(list(visible = vis)),
               label = k
             )
           }),
-          direction = "down",
+          direction = "down", # Plats på dropdownen
           x = -0.1, y = 1,
           pad = list(r = 10, t = 10),
           showactive = TRUE
@@ -767,6 +803,8 @@ byggnadsperiod_kommun <- function(){
         )
       )
     )
+  
+  # Tar bort knappar från plotly
   fig <- plotly::config(
     fig,
     modeBarButtonsToRemove = c(
@@ -792,33 +830,43 @@ byggnadsperiod_kommun <- function(){
 
 
 fritidshus_reg <- function(){
+  # Läser in data
   df_fritidshus <- read.csv('Data/df_fritidshus.csv')
   
+  # Summerar antal per år
   df_fritidshus_reg <- df_fritidshus %>% group_by(år) %>% 
     summarize(Antal = sum(Antal), .groups = "drop")
+  
+  # Senaste året i datan som ska in i titeln
   ar_max <- max(df_fritidshus_reg$år)
   
+  # Skapar plot
   p <- ggplot(df_fritidshus_reg, aes(x=as.integer(år), y=Antal))+
-    geom_line(color = '#B81867', linewidth = 2) + xlab('År') + ggtitle(paste('Totalt antal fritidshus i Uppsala län (1998-',ar_max, ')' ,sep=""))+
+    geom_line(color = '#B81867', linewidth = 2) + xlab('År') + 
+    ggtitle(paste('Totalt antal fritidshus i Uppsala län (1998-',ar_max, ')' ,sep=""))+
     theme_minimal()+ theme(
       text = element_text(family = "sourcesanspro"))
   
+  # Sparar plot
   ggsave(filename = 'Figurer/fritidshus_region.svg', plot = p, width =  7, height = 5, device = "svg")
 }
 
 fritidshus_kommun <- function(){
+  # Läser in data
   df_fritidshus <- read.csv('Data/df_fritidshus.csv')
+  # Senaste året i datan som ska in i titeln
   ar_max <- max(df_fritidshus$år)
   
+  # Skapar plot
   p <- ggplot(df_fritidshus, aes(x=as.integer(år), y=Antal,  color = region))+
-    geom_line( linewidth = 2) +facet_wrap(vars(region), scales='free_y')+ 
-    scale_color_manual(values = kommun_colors) +
+    geom_line( linewidth = 2) +facet_wrap(vars(region), scales='free_y')+ # Delar per region
+    scale_color_manual(values = kommun_colors) + 
     xlab('År') + ggtitle(paste('Antal fritidshus per kommun (1998 och ', ar_max,')', sep=""))+
     scale_x_continuous(
       breaks = seq(min(df_fritidshus$år), max(df_fritidshus$år), by = 7)
     ) +theme_minimal() + theme(legend.position="none",
                                text = element_text(family = "sourcesanspro"))
-  
+  # Sparar plot
   ggsave(filename = 'Figurer/fritidshus_kommun.svg', plot = p, width =  7, height = 5, device = "svg")
 }
 
@@ -827,10 +875,13 @@ fritidshus_kommun <- function(){
 ####### Hyresutveckling #########
 
 hyres_utveck <- function(){
+  # Läser in data
   df_hyra <- read.csv('Data/df_hyra.csv')
   
+  # Sista året i datat
   ar_max <- max(df_hyra$år)
-  # Förbered data
+  
+  # Byter namn, år till heltal, och ordnar, tar bort NAs
   df_hyra_clean <- df_hyra %>%
     mutate(
       år = as.integer(år),
@@ -844,8 +895,10 @@ hyres_utveck <- function(){
   
   # Lägg till en linje för varje kommun
   for(kommun in unique(df_hyra_clean$region)) {
+    # filtrerar ut kommun
     kommun_data <- df_hyra_clean %>% filter(region == kommun)
     
+    # skapa linje
     fig <- fig %>%
       add_trace(
         data = kommun_data,
@@ -893,13 +946,13 @@ hyres_utveck <- function(){
         y = 1,
         font = list(size = 12)
       ),
-      hovermode = "x unified",
+      hovermode = "x unified", # Så att man ser alla kommuners data vid hoverover
       plot_bgcolor = 'white',
       paper_bgcolor = 'white',
       margin = list(l = 60, r = 150, t = 80, b = 60)
     )
   
-  # En mer interaktiv version där du kan klicka på legendan för att highlighta en specifik kommun
+  # En mer interaktiv version där du kan klicka på legenden för att highlighta en specifik kommun
   fig <- fig %>%
     layout(
       legend = list(
@@ -910,6 +963,7 @@ hyres_utveck <- function(){
       )
     )
   
+  # Tar bort plotlyknappar
   fig <- plotly::config(
     fig,
     modeBarButtonsToRemove = c(
@@ -936,9 +990,12 @@ hyres_utveck <- function(){
 prognos_behov <- function(){
   # Läser in data och skapar set för basår
   folkmangd <- read.csv('Data/df_folkmangd.csv')
+  
+  # Summerar folkmängden per kommun
   folkmangd_tot <- folkmangd %>% filter(år == 2006) %>%  group_by(region) %>% 
     summarise(Total_folkmängd = sum(Folkmängd), .groups = 'drop') 
   
+  # Läser in data
   df_supplatelse <- read.csv('Data/df_supplatelse.csv')
   
   # Summerar antal
@@ -948,19 +1005,22 @@ prognos_behov <- function(){
   # Slår ihop set
   df_kvot <- left_join(df_supplatelse_2006,folkmangd_tot, by='region' )
   
+  # Beräknar kvoten
   df_kvot$Kvot <- df_kvot$Total_folkmängd / df_kvot$Total_bostader # beräknar kvoten
   
+  # Ändrar kolumnnamnen
   colnames(df_kvot) <- c('Region', 'Antal bostäder', 'Antal vuxna', 'Kvot')
   
+  # Läser in data och tar bort första året
   df_befolkf <- read.csv('Data/df_folkmangdfram.csv') %>% filter(år > min(år))
 
-  # Befolkning
+  # Minst 20 år, och 20 år framåt summeras
   tid_df_befolkf <- df_befolkf %>% 
     filter(ålder >= 20, as.numeric(år) < (min(år)+ 20)) %>%  # 20 år framåt och alla över 20
     group_by(region, år) %>%  
     summarise(Totalt = sum(Antal), .groups = "drop")
   
-  # folkmängden 2024
+  # folkmängden 2024 för 20-åringar och äldre
   max_ar <- max(folkmangd$år)
   folkokning <- folkmangd %>% filter(år == max_ar) %>%  group_by(region) %>% 
     summarise(Totalt = sum(Folkmängd), .groups = 'drop') %>% 
@@ -994,7 +1054,9 @@ prognos_behov <- function(){
     )
   # Plotfunktion
   plot_tid_nybygg_befolk_tot <- function(kommun_val){
+    # Filtrerar kommun
     df_plot <- tid_df %>% filter(region == kommun_val)
+    
     lines_plot <- lines_df %>% 
       filter(region == kommun_val)  # Bostadsbrist är nu med
     
@@ -1022,6 +1084,7 @@ prognos_behov <- function(){
     p
   }
   
+  # Loopar över alla kommuner
   for (r in sort(kommuner)){
     p <- plot_tid_nybygg_befolk_tot(r)
     
@@ -1057,6 +1120,7 @@ prisfastighet <- function(){
   # loopar över alla kommuner
   for (r in unique(df$municipality)){
     
+    # Filtrerar kommun
     temp <- df %>% filter(municipality == r)
     
     # Tidserieplots
@@ -1069,6 +1133,7 @@ prisfastighet <- function(){
      theme(legend.position = 'bottom', 
            axis.text.x = element_text(angle=45))
    
+   # Sparar en plot per kommun
    filename <- paste0('Figurer/fastighetspris_',r ,'.svg')
    ggsave(filename,plot = p,device = "svg", width = 7, height = 5)
   }
@@ -1080,7 +1145,6 @@ prisfastighet <- function(){
 trangbodd <- function(){
   # Läser in data
   df <- read.csv("Data/trandboddhet.csv") %>% filter(year == max(year))
-  
   
   # fixar snyggare titlar: 
   df$title <- gsub("Trångboddhet i flerbostadshus, enligt ", "", df$title)
@@ -1098,6 +1162,7 @@ trangbodd <- function(){
   # loopar över alla kommuner
   for (r in unique(df$municipality)){
     
+    # Filtrerar kommun
     temp <- df %>% filter(municipality == r)
     
     # Tidserieplots
@@ -1108,6 +1173,7 @@ trangbodd <- function(){
       scale_fill_manual(values=cols)+ 
       theme(legend.position = 'bottom')
     
+    # Sparar en plot per kommun
     filename <-  paste0('Figurer/trangboddhet_',r ,'.svg')
     ggsave(filename,plot = p,device = "svg", width = 7, height = 5)
   }
