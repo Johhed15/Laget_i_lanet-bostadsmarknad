@@ -19,6 +19,26 @@ if (!file.exists('Data')){
   dir.create('Data')
 }
 
+
+##### Deso
+# 2025
+
+url <- "https://geodata.scb.se/geoserver/stat/wfs?service=WFS&REQUEST=GetFeature&version=1.1.0&TYPENAMES=stat:DeSO_2025&outputFormat=geopackage"
+output_file <- "DeSO_2025.gpkg"
+
+# Kollar om den redan finns
+if (file.exists(output_file)) {
+  
+} else {
+  
+  response <- GET(url, write_disk(output_file, overwrite = TRUE))
+  
+}
+
+
+
+
+
 ##############Laddar in data om Antal lägenheter efter region, hustyp och byggnadsperiod. År 2013 - 2024 #######
 {
   # Laddar in data om Antal lägenheter efter region, hustyp och byggnadsperiod. År 2013 - 2024
