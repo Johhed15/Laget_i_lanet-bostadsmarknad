@@ -6,6 +6,9 @@ get_settings <- function() {
   kommunkod <- c("0330", "0331", "0360", "0380", "0381", "0382", "0305", "0319")
   kommuner <- sort(c("Knivsta", "Heby", "Tierp", "Uppsala", "Enköping", "Östhammar", "Håbo", "Älvkarleby"))
   
+  lan <- 'Uppsala län'
+  lanskod <- "03"
+  
   # Fonts
   try(showtext::font_add_google("Source Sans Pro", "sourcesanspro"), silent = TRUE)
   showtext::showtext_auto()
@@ -35,6 +38,7 @@ get_settings <- function() {
     "Östhammar" = "#E67E22"
   )
   
+  
   riket_narliggande <- c('00','03',"04", "05", "18", "19" )
   
   upplat_colors <- c(
@@ -49,6 +53,8 @@ get_settings <- function() {
     kommuner = kommuner,
     kommun_colors = kommun_colors,
     riket_narliggande=riket_narliggande,
-    upplat_colors=upplat_colors
+    upplat_colors=upplat_colors,
+    lan = lan,
+    lanskod = lanskod
   )
 }

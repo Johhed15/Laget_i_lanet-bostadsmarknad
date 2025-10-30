@@ -11,6 +11,8 @@
   kommuner <- settings$kommuner
   kommun_colors <- settings$kommun_colors
   upplat_colors <- settings$upplat_colors
+  lan <- settings$lan
+  lanskod <- settings$lanskod
   
 }
 
@@ -323,7 +325,7 @@ nybygg_region <- function(){
                  "Total_personer" = "Befolkningsförändring")
     ) +
     labs(
-      title = "Uppsala län",
+      title = lan,
       x = "År", y = "Antal",
       fill = "",
       color = ""   # rubrik för linjer
@@ -551,7 +553,7 @@ uppskatt_behov <- function(){
   
   
 }
-######### Deso upplåtelseform#######
+######### Deso upplåtelseform #######
 
 deso_upplat <- function(){
   # Läser in data
@@ -561,7 +563,7 @@ deso_upplat <- function(){
     suppressWarnings({
       st_layers("DeSO_2025.gpkg")
       deso_sf <- st_read("DeSO_2025.gpkg", layer = "DeSO_2025", quiet = TRUE) %>%
-        filter(lanskod == "03") # we keep only Uppsala län
+        filter(lanskod == !!lanskod) # tar endast ut länet
     })
   })
   
@@ -843,7 +845,7 @@ fritidshus_reg <- function(){
   # Skapar plot
   p <- ggplot(df_fritidshus_reg, aes(x=as.integer(år), y=Antal))+
     geom_line(color = '#B81867', linewidth = 2) + xlab('År') + 
-    ggtitle(paste('Totalt antal fritidshus i Uppsala län (1998-',ar_max, ')' ,sep=""))+
+    ggtitle(paste('Totalt antal fritidshus i', lan ,'(1998-',ar_max, ')' ,sep=""))+
     theme_minimal()+ theme(
       text = element_text(family = "sourcesanspro"))
   
@@ -1179,4 +1181,8 @@ trangbodd <- function(){
   }
   
 }
+
+
+
+
 

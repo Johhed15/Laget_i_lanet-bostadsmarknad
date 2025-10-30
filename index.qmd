@@ -37,6 +37,7 @@ install_and_load()
 settings <- get_settings()
 kommunkod <- settings$kommunkod
 kommuner <- settings$kommuner
+lanskod <- settings$lan
 
 source("Script/create_save_plots.R")
 
@@ -66,12 +67,6 @@ Kommunernas egna bedömningar av bostadsmarknadsläget bygger på Bostadsmarknad
 På frågan "Hur bedömer ni för närvarande kommunens bostadsmarknadsläge?(I kommunen som helhet)", så har kommunerna i regionen svarat såhär inför 2025.
 
 ```{r, echo = FALSE}
-#colnames(bedom_av_bostadsmarknad)[2] <- 'Bostadsmarknadslägesbedömning'
-
-#knitr::kable(bedom_av_bostadsmarknad, caption = 'Bedömning av bostadsmarknadsläge [Kommunen som helhet]')
-```
-
-```{r, echo = FALSE}
 #| label: "tbl-bostadsbedom"
 #| tbl-cap: ""
 
@@ -79,6 +74,7 @@ På frågan "Hur bedömer ni för närvarande kommunens bostadsmarknadsläge?(I 
 
 # Printar tabell 
 colnames(bedom_av_bostadsmarknad)[2] <- 'Bedömning'
+
 bedom_av_bostadsmarknad %>%
   gt() %>%
   tab_header(
@@ -88,11 +84,12 @@ bedom_av_bostadsmarknad %>%
   data_color(
     columns = vars(Bedömning),
     colors = scales::col_factor(
-      palette = c( "#4AA271","#D0342C"), # choose colors you like
+      palette = c( "#4AA271","#D0342C"), # Palette
       domain = c("Underskott på bostadsmarknaden", "Balans på bostadsmarknaden")
     )
-  ) %>% tab_options(table.font.names = "sourcesanspro")
+  ) %>% tab_options(table.font.names = "sourcesanspro") # font
 
+# Plockar ut år till senare grafer/text
 df_supplatelse <- read.csv('Data/df_supplatelse.csv')
 max_ar <-  as.integer(max(df_supplatelse$år))
 ```
@@ -129,6 +126,7 @@ df_bedom <- bedom_av_bostadsmarknad2013 %>% left_join(bedom_av_bostadsmarknad201
              left_join(bedom_av_bostadsmarknad,by='Kommun' ) 
 
 df_bedom <- df_bedom[order(df_bedom$Kommun),]
+
 colnames(df_bedom)[4] <- 'Bedömning 2025'
 df_bedom %>%
   gt() %>%
@@ -159,9 +157,10 @@ df_bedom %>%
 #| tbl-cap: ""
 
 
-
+# Läser in data 
 df_lediga <- read.csv('Data/df_lediga.csv')
 
+# Filtrerar och väljer ut kolumner til tabellen
 tot_ledigt <- df_lediga %>% filter(lägenhetstyp == 'totalt', år == max(as.integer(år))) %>% select(region,Andel.lediga.lägenheter.i.flerbostadshus..allmännyttiga ) %>%   rename(Andel = Andel.lediga.lägenheter.i.flerbostadshus..allmännyttiga, Region ='region')
 
 tot_ledigt %>%
@@ -169,13 +168,12 @@ tot_ledigt %>%
   tab_header(
     title = "Andel lediga lägenheter i flerbostadshus, allmännyttiga",
     subtitle = 'Andel i procent'
-    
   )%>%
   data_color(
     columns = vars(Andel),
     colors = col_numeric(
       palette = c("#B81867", "#F4DCE8"),  
-      domain = NULL                 # scales automatically from min to max
+      domain = NULL                 
     )
   ) %>%  tab_options(table.font.names = "sourcesanspro")
 
@@ -209,10 +207,10 @@ flerbostadshus_wide <- flerbostadshus %>% pivot_wider(names_from = upplåtelsefo
 colnames(flerbostadshus_wide) <- paste(toupper(substr(colnames(flerbostadshus_wide), 1, 1)), substr(colnames(flerbostadshus_wide), 2, nchar(colnames(flerbostadshus_wide))), sep="")
 
 
-# Compute row-wise difference in a temporary variable
+# Skillnaden mellan variablerna för färgsättning
 diff_values <- flerbostadshus_wide$Hyresrätt - flerbostadshus_wide$Bostadsrätt
 
-# Create gt table using only the original columns
+
 gt_table <- gt(flerbostadshus_wide) %>%
   tab_header(
     title = "Andel hyresrätt/bostadsrätt i flerbostadshus per kommun",
@@ -453,16 +451,21 @@ Om det faktiska antalet nybyggda bostäder är lägre än det beräknade behovet
 ```{r}
 #| label: "tbl-kvot"
 #| tbl-cap: ""
-
+# Läser in data för 2006
 folkmangd <- read.csv('Data/df_folkmangd.csv') %>% filter(år == 2006)
+
+# summerar åldersgrupperna
 folkmangd_tot <- folkmangd %>% group_by(region) %>% 
                   summarise(Total_folkmängd = sum(Folkmängd), .groups = 'drop') 
 
+# Summerar antalet bostäder 2006
 df_supplatelse_2006 <- df_supplatelse %>% filter(år =='2006') %>% 
                         group_by(region) %>% summarise(Total_bostader = sum(Antal), .groups='drop')
 
+# Slår ihop data
 df_kvot <- left_join(df_supplatelse_2006,folkmangd_tot, by='region' )
 
+# Beräknar kvoten
 df_kvot$Kvot <- df_kvot$Total_folkmängd / df_kvot$Total_bostader # beräknar kvoten
 
 colnames(df_kvot) <- c('Region', 'Antal bostäder', 'Antal vuxna', 'Kvot')
@@ -471,7 +474,7 @@ colnames(df_kvot) <- c('Region', 'Antal bostäder', 'Antal vuxna', 'Kvot')
 df_kvot %>%
   gt() %>%
   tab_header(
-    title = "Hyresgästföreningens kvot per kommun i Uppsala län, basår 2006"
+    title = "Hyresgästföreningens kvot per kommun i länet, basår 2006"
     
   ) %>% fmt_number( # ändrar antalet decimaler
     columns = vars(Kvot),  
@@ -481,7 +484,7 @@ df_kvot %>%
     columns = vars(Kvot),
     colors = col_numeric(
        palette = c("#F4DCE8", "#B81867"),  # low = red, high = green
-      domain = NULL                 # automatically scales from min to max
+      domain = NULL                 
     )
   ) %>% tab_options(table.font.names = "sourcesanspro")
 ```
@@ -499,31 +502,19 @@ $$\text{Bostadsdifferens} = \text{Nybyggda bostäder} - \text{Uppskattat behov}$
 ::: panel-tabset
 ```{r, results='asis'}
 # printar både plot  per kommun
-folkmangd <- read.csv('Data/df_folkmangd.csv')
-folkmangd_tot <- folkmangd %>% group_by(region) %>% 
-    summarise(Total_folkmängd = sum(Folkmängd), .groups = 'drop') 
-  
-df_supplatelse <- read.csv('Data/df_supplatelse.csv')
-  
-df_supplatelse_2006 <- df_supplatelse %>% filter(år =='2006') %>% 
-    group_by(region) %>% summarise(Total_bostader = sum(Antal), .groups='drop')
-  
-df_kvot <- left_join(df_supplatelse_2006,folkmangd_tot, by='region' )
-  
-df_kvot$Kvot <- df_kvot$Total_folkmängd / df_kvot$Total_bostader # beräknar kvoten
-  
-colnames(df_kvot) <- c('Region', 'Antal bostäder', 'Antal vuxna', 'Kvot')
+# Läser in data
 df_nybyggda <- read.csv('Data/df_nybyggda.csv')
 df_befolkf <- read.csv('Data/df_befolkf.csv')
   
 df_nybyggda$år <- as.integer(df_nybyggda$år)
+
   # Summera nybygg utan upplåtelseform
 tid_df_nybyggda_total <- df_nybyggda %>% 
     filter(as.numeric(år) > 2012) %>% 
     group_by(region, år) %>%   
     summarise(Total_nybygg = sum(Antal), .groups = "drop")
   
-  # Befolkning
+  # Befolkning per år
 tid_df_befolkf <- df_befolkf %>% 
     rename(Antal_personer = Antal.personer) %>%  
     filter(as.numeric(år) > 2012) %>% 
@@ -545,10 +536,15 @@ lines_df <- tid_df %>%
       names_to = "Typ",
       values_to = "Total"
     )
+
 tid_df <- tid_df %>% mutate(år = as.integer(år))
+
 for (r in sort(kommuner)) {
+  # Beräknar skillnaden mellan byggt och uppskattat behov
   filter_kommun <- tid_df %>% filter(region==r) %>% 
                   group_by(år) %>% mutate(year_Diff = Total_nybygg-Uppskattat_behov) %>% ungroup() 
+  
+  # Tar ut senaste året och totalet över intervallet som sedan printas
   senast_diff <- filter_kommun %>% filter(år == max(år, na.rm = TRUE))
   total_diff <- sum(filter_kommun$year_Diff, na.rm = TRUE)
   
@@ -605,6 +601,69 @@ for (r in sort(kommuner)) {
 ```
 :::
 
+Liknande trend under en längre tid syns för alla kommuner, en minskande befolkningsförändring, men det är en skillnad för Knivsta och Uppsala som först estimeras en högre befolkningsökning de kommande åren, innan trenden vänder. Värt att de siffrorna som visas i graferna ovan är estimat från simpla modeller och ska inte ses som säkra prognoser och ju längre prognosen är, desto mer ökar osäkerheten.
+
+## Boverkets egna prognos för de kommande 10 åren
+
+I @tbl-bostads_prognos så presenteras @boverket2025bostadsbyggnadsbehovet beräknade bostadsbyggnadsbehov på kommunal nivå.
+
+Boverkets modell tar hänsyn till befolkningsutvecklingens åldersammansättning, då ett ökande antal äldre ger upphov till fler hushåll. Modellen antar också att det behövs en buffert eller reserv av ett antal lediga bostäder för att bostadsmarknaden ska fungera, det vill säga att byggandet ska ligga lite före befolkningsutvecklingen.
+
+Modellen tar också hänsyn till hur bostadsläget ser ut idag, innan framtida behov undersöks. Befolkningsutvecklingsdatat i modellen är taget från SCBs befolkningsframskrivningar likt prognosen med kvoter.
+
+Boverket benämner också att bostadsbehovet och förväntat antal bostadsbyggande inte är densamma, då det som faktiskt kommer att byggas också tar hänsyn till de rådande marknadsförutsättningarna.
+
+Antagande om vilken typ eller storlek av bostad som ska byggas tas ej in i modellen, så det kan alltså finnas ett bostadsbyggnadsbehov som inte fångas upp i beräkningen.
+
+```{r}
+#| label: "tbl-bostads_prognos"
+#| tbl-cap: ""
+
+# Tar ut intervallet ur datan så att den kan läggas in i titeln
+years_int <- names(read_excel('Data/boverket_prognos.xlsx', sheet =2)[1,1])
+years_int <- str_split(years_int," ")[[1]][7]
+
+
+# Läser in boverkets data
+df2 <- read_excel('Data/boverket_prognos.xlsx', sheet =2,skip = 1) %>% 
+        filter(Länskod==lanskod) %>% arrange(Kommun)
+
+# Skapar tabell
+df2 %>%
+  select(-c(1:3)) %>%
+  gt() %>%
+  tab_header(
+    title = md(paste("Beräknat årligt bostadsbyggnadsbehov baserat på åren",years_int))
+  ) %>%
+  fmt_number( 
+    columns = 2:5, 
+    decimals = 0
+  ) %>%
+  data_color( # Färg på över/underskott
+    columns = "Beräknat under-/överskott",
+    colors = scales::col_numeric(
+      palette =  c( "#B81867","#F4DCE8"),
+      domain = NULL
+    )
+  ) %>%
+  cols_label( # titlar
+    Kommun = "Kommun",
+    `Totalt byggbehov` = "Totalt byggbehov",
+    `Beräknat tillkommande behov` = "Tillkommande behov",
+    `Beräknat under-/överskott` = "Under-/överskott",
+    `Beräknad bostadsreserv` = "Bostadsreserv"
+  ) %>%
+  tab_options( # layout options
+    table.font.names = "sourcesanspro",
+    table.font.size = 14,
+    table.border.top.width = 2,
+    table.border.bottom.width = 2,
+    heading.align = "center"
+  )
+```
+
+Alla kommuner påvisar en positiv bostadsreserv, men Knivsta och Östhammar beräknas att ha ett ingående underskott. Siffrorna skiljer sig något från prognosen från kvoter i delkapitlet ovan, men båda prognoserna visar att det behövs byggas fler bostäder i samtliga kommuner.
+
 # Upplåtelseform på DeSo-nivå
 
 För att få en mer detaljerad bild av bostadsmarknaden redovisas upplåtelseformer på DeSo-nivå (Demografiska statistikområden). Kartan visar vilken upplåtelseform som är vanligast i varje område, tillsammans med respektive andel.
@@ -621,6 +680,7 @@ På en stor del av länets yta så är äganderätt den vanligaste upplåtseform
 ```{r}
 #| label: "tbl-antaldeso"
 #| tbl-cap: ""
+# Läser in desodata
 # Read the layer safely
 suppressMessages({
   suppressWarnings({
@@ -632,6 +692,7 @@ suppressMessages({
   })
 })
 
+# Tar ut den vanligaste upplåtelseformen
 mest_popular_upplat <- deso_sf %>%
   group_by(desokod) %>%
   slice_max(order_by = Antal, n = 1, with_ties = FALSE) %>%
@@ -645,29 +706,29 @@ table_df <- as.data.frame.matrix(table(mest_popular_upplat$Popularaste_upplåtel
 rownames(table_df) <- c('Bostadsrätt', 'Hyresrätt', 'Äganderätt')
 
 
-# Convert rownames to a column
+# Radnamn till kolumn
 table_df2 <- table_df %>%
   rownames_to_column(var = "Typ")  # "Typ" = Bostadsrätt, Hyresrätt, Äganderätt
 
-# Define color map
+# färgtema
 color_map <- c(
   "Hyresrätt"   = "#D57667",
   "Bostadsrätt" = "#F9B000",
   "Äganderätt"  = "#019CD7"
 )
 
-# Create gt table
+# Skapar tabell
 gt_table <- gt(table_df2, rowname_col = "Typ") %>%
   tab_header(
     title = "Antal områden där upplåtelseformen är vanligast per kommun"
   ) %>% tab_options(table.font.names = "sourcesanspro")
 
-# Highlight the highest value per column
+# Highlightar de högsta värdena per kolumn
 for (col in colnames(table_df2)[-1]) {  # skip 'Typ' column
-  # Find the row(s) with the max value in this column
+  # Hittar rad med högst värde per kol
   max_rows <- table_df2$Typ[table_df2[[col]] == max(table_df2[[col]])]
   
-  # Apply coloring for each max row
+  # Lägger till färg
   for (row in max_rows) {
     gt_table <- gt_table %>%
       tab_style(
@@ -775,11 +836,9 @@ Medianhyrorna visar en tydlig polarisering mellan kommunernas hyresnivåer under
 
 ## Fastighetsprisutveckling
 
-Data är hämtat från @kolada som hänvisar vidare till @scb_statistikdatabasen och @fastighetsprisregistret. 
+Data är hämtat från @kolada som hänvisar vidare till @scb_statistikdatabasen och @fastighetsprisregistret.
 
 Kvadratmeterpriser för bostadsrätter beräknas utifrån genomsnittliga areor per kommun, antagna som konstanta över tid. För småhus och fritidshus används individuella köp från SCB:s Fastighetsprisregister, där skillnaden avgörs av folkbokföring året före försäljningen. Definitionerna ändrades något 2015, vilket kan påverka jämförelser över tid.
-
-
 
 ::: panel-tabset
 ```{r, results='asis'}
@@ -799,13 +858,13 @@ for (r in unique(kommuner)) {
 ```
 :::
 
-Alla kommuner visar en positiv fastighetsprisutveckling, med priser som ökat kontinuerligt under tidsperioden. Det högsta priset per fastighetskategori är för fritidshus för samtliga kommuner utom Uppsala, där småhus är den kategori som haft högst priser de senaste åren. 
+Alla kommuner visar en positiv fastighetsprisutveckling, med priser som ökat kontinuerligt under tidsperioden. Det högsta priset per fastighetskategori är för fritidshus för samtliga kommuner utom Uppsala, där småhus är den kategori som haft högst priser de senaste åren.
 
-Älvkarleby och Östhammar är de två kommunerna som har störst visuell skillnad mellan kategorierna, högst priser per kvadratmeter i länet hittas i Håbo och Knivsta och lägst priser i Heby och Älvkarleby. 
+Älvkarleby och Östhammar är de två kommunerna som har störst visuell skillnad mellan kategorierna, högst priser per kvadratmeter i länet hittas i Håbo och Knivsta och lägst priser i Heby och Älvkarleby.
 
 # Trångboddhet
 
-Data är hämtat från @kolada som hänvisar vidare till @scb_statistikdatabasen. 
+Data är hämtat från @kolada som hänvisar vidare till @scb_statistikdatabasen.
 
 Trångboddhet mäts enligt SCB:s normer. Enligt norm 2 räknas hushåll med fler än två personer per rum (utan kök/vardagsrum) som trångbodda, medan norm 3 gäller vid fler än en person per rum, men att sammanboende par förutsätts dela sovrum. Ensamhushåll räknas inte som trångbodda. Data avser personer i flerbostadshus exklusive specialbostäder som avser studentbostäder, bostäder för äldre/funktionshindrade och övriga specialbostäder.
 
@@ -827,6 +886,6 @@ for (r in unique(kommuner)) {
 ```
 :::
 
-I Heby hittas den högsta trångboddheten för bägge normerna, där över 50 % av männen i flerbostadshus med sammanboende anses bo trångbott enligt norm 3, Älvkarleby är den kommun som har näst högst värden för norm 3, medan Enköping har näst högst värden för norm 2.
+I Heby hittas den högsta trångboddheten för bägge normerna, där över 50 % av männen i flerbostadshus med sammanboende anses bo trångbott enligt norm 3, Älvkarleby är den kommun som har näst högst värden för norm 3, medan Enköping har näst högst värden för norm 2. Östhammar är den kommun med lägst andel trångboddhet för bägge normerna och män och kvinnor.
 
-Kvinnor bor generellt mindre trångbott än män i samtliga kommuner, men skillnaden mellan könen varierar beroende på norm och kommun. 
+Kvinnor bor generellt mindre trångbott än män i samtliga kommuner, men skillnaden mellan könen varierar beroende på norm och kommun.

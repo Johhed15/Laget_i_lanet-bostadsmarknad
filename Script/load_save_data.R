@@ -11,8 +11,13 @@
   kommuner <- settings$kommuner
   kommun_colors <- settings$kommun_colors
   riket_narliggande <- settings$riket_narliggande
+  lanskod <- settings$lanskod
 }
 
+# Skapar folder för data om den inte existerar
+if (!file.exists('Data')){
+  dir.create('Data')
+}
 
 ##############Laddar in data om Antal lägenheter efter region, hustyp och byggnadsperiod. År 2013 - 2024 #######
 {
@@ -303,8 +308,8 @@ write.csv(folkmangd, "Data/df_folkmangd.csv", row.names = F)
   # Visa tillgängliga regionkoder
   regioner <- meta$variables[[1]]$values
   
-  # Välj endast regioner som börjar med "03"
-  uppsala_koder <- regioner[startsWith(regioner, "03")]
+  # Välj endast regioner som börjar med lanskod
+  uppsala_koder <- regioner[startsWith(regioner, lanskod)]
   
   pxweb_query_list <-
     list('Region' = uppsala_koder,
