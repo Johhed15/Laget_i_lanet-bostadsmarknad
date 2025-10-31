@@ -11,6 +11,7 @@ get_settings <- function() {
   
   # Fonts
   try(showtext::font_add_google("Source Sans Pro", "sourcesanspro"), silent = TRUE)
+  font_add("Arial", "path/to/arial.ttf")
   showtext::showtext_auto()
   
   # Theme
