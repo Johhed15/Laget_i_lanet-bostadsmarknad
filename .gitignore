@@ -6,6 +6,8 @@
 /.quarto/
 # Bilder som ej får läsas upp
 Mediabank/
+Figurer/
+/Figurer
 
 # Data
 Data/

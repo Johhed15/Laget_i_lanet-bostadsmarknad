@@ -122,12 +122,17 @@ df_bostadsverket2018 <- df_bostadsverket2 %>% filter(Kommun %in% kommuner)
 bedom_av_bostadsmarknad2018 <- df_bostadsverket2018[,c(1,6)]
 colnames(bedom_av_bostadsmarknad2018)[2] <- "Bedömning 2018"
 
+# Slår ihop data
 df_bedom <- bedom_av_bostadsmarknad2013 %>% left_join(bedom_av_bostadsmarknad2018,by='Kommun' ) %>% 
              left_join(bedom_av_bostadsmarknad,by='Kommun' ) 
 
+# Ändrar ordningen
 df_bedom <- df_bedom[order(df_bedom$Kommun),]
 
+# Byter kolumnnamn
 colnames(df_bedom)[4] <- 'Bedömning 2025'
+
+# Skapar tabell
 df_bedom %>%
   gt() %>%
   tab_header(
@@ -163,6 +168,7 @@ df_lediga <- read.csv('Data/df_lediga.csv')
 # Filtrerar och väljer ut kolumner til tabellen
 tot_ledigt <- df_lediga %>% filter(lägenhetstyp == 'totalt', år == max(as.integer(år))) %>% select(region,Andel.lediga.lägenheter.i.flerbostadshus..allmännyttiga ) %>%   rename(Andel = Andel.lediga.lägenheter.i.flerbostadshus..allmännyttiga, Region ='region')
 
+# Skapar tabell
 tot_ledigt %>%
   gt() %>%
   tab_header(
@@ -210,7 +216,7 @@ colnames(flerbostadshus_wide) <- paste(toupper(substr(colnames(flerbostadshus_wi
 # Skillnaden mellan variablerna för färgsättning
 diff_values <- flerbostadshus_wide$Hyresrätt - flerbostadshus_wide$Bostadsrätt
 
-
+# Skapar tabell
 gt_table <- gt(flerbostadshus_wide) %>%
   tab_header(
     title = "Andel hyresrätt/bostadsrätt i flerbostadshus per kommun",
@@ -307,6 +313,7 @@ I En positiv trend för alla upplåtelseformer syns under perioden, men framför
 
 # kod som genererar knappar för kommunerna så att ej alla prints direkt. 
 
+# Kommentarer som också ska visas
 kommentarer <- tibble::tibble(
   region = sort(kommuner),
   kommentar = c(
@@ -376,6 +383,7 @@ Befolkningsökningen i länet var väldigt hög mellan 2016 och 2019, med en dip
 
 # kod som genererar knappar för kommunerna så att ej alla prints direkt. 
 
+# kommentarer som också visas
 kommentarer <- tibble::tibble(
   region = sort(kommuner),
   kommentar = c(

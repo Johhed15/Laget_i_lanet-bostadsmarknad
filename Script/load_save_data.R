@@ -68,6 +68,7 @@ if (file.exists(output_file)) {
   # sparar data med variabler: region, unrikes/utrikes född, kön, ålder, tid , antal
   write.csv(df_byggnadsperiod, "Data/df_byggnadsperiod.csv", row.names = F)
   
+  print('Nedladdning av "df_byggnadsperiod" har gått igenom')
 }
 
 
@@ -94,6 +95,8 @@ px_data <- pxweb_get(url = url,pxweb_query_list)
 df_agarkategori <- as.data.frame(px_data, column.name.type = "text", variable.value.type = "text")
 
 write.csv(df_agarkategori, "Data/df_agarkategori.csv", row.names = F)
+
+print('Nedladdning av "df_agarkategori" har gått igenom')
 }
 
 
@@ -121,7 +124,7 @@ write.csv(df_agarkategori, "Data/df_agarkategori.csv", row.names = F)
   df_bostadsarea <- as.data.frame(px_data, column.name.type = "text", variable.value.type = "text")
   
   write.csv(df_bostadsarea, "Data/df_bostadsarea.csv", row.names = F) 
-  
+  print('Nedladdning av "df_bostadsarea.csv" har gått igenom')
 }
 
 
@@ -151,7 +154,7 @@ write.csv(df_agarkategori, "Data/df_agarkategori.csv", row.names = F)
   
   write.csv(df_lagenhetstyp, "Data/df_lagenhetstyp.csv", row.names = F) 
   
-  
+  print('Nedladdning av "df_lagenhetstyp.csv" har gått igenom')
 }
 
 
@@ -177,6 +180,8 @@ px_data <- pxweb_get(url = url,pxweb_query_list)
 df_specialbostad <- as.data.frame(px_data, column.name.type = "text", variable.value.type = "text")
 
 write.csv(df_specialbostad, "Data/df_specialbostad.csv", row.names = F) 
+
+print('Nedladdning av "df_specialbostad" har gått igenom')
 }
 
 
@@ -201,6 +206,8 @@ px_data <- pxweb_get(url = url,pxweb_query_list)
 df_supplatelse <- as.data.frame(px_data, column.name.type = "text", variable.value.type = "text")
 
 write.csv(df_supplatelse, "Data/df_supplatelse.csv", row.names = F) 
+
+print('Nedladdning av "df_supplatelse.csv" har gått igenom')
 }
 
 
@@ -212,7 +219,7 @@ url <- 'https://www.boverket.se/contentassets/fe1716843d2147edb3c38cd4ea7df7b9/l
 # Download the file
 download.file(url, destfile = 'Data/boverket.xlsx', mode = "wb")
 
-
+print('Nedladdning av "boverket.xlsx" har gått igenom')
 
 
 
@@ -241,7 +248,7 @@ df_lediga <- as.data.frame(px_data, column.name.type = "text", variable.value.ty
 
 write.csv(df_lediga, "Data/df_lediga.csv", row.names = F) 
 
-
+print('Nedladdning av "df_lediga.csv" har gått igenom')
 }
 ##########Laddar in data om Färdigställda lägenheter i nybyggda hus, antal efter region, hustyp, upplåtelseform och år #####################
 {
@@ -267,6 +274,8 @@ df_nybyggda <- as.data.frame(px_data, column.name.type = "text", variable.value.
 
 write.csv(df_nybyggda, "Data/df_nybyggda.csv", row.names = F) 
 
+print('Nedladdning av "df_nybyggda.csv" har gått igenom')
+
 ############## laddar in data för befolkningsförändring#################
 url <- 'https://api.scb.se/OV0104/v1/doris/sv/ssd/START/BE/BE0101/BE0101G/BefforandrKvRLK'
 # Skapa en referenstabell med kommunkoder och namn
@@ -288,6 +297,8 @@ px_data <- pxweb_get(url = url,pxweb_query_list )
 df_befolkf <-  as.data.frame(px_data, column.name.type = "text", variable.value.type = "text")
 
 write.csv(df_befolkf, "Data/df_befolkf.csv", row.names = F) 
+
+print('Nedladdning av "df_befolkf.csv" har gått igenom')
 }
 
 ######## Laddar in data Folkmängden efter region,  ålder  År 2006 ##########
@@ -312,6 +323,7 @@ px_data <- pxweb_get(url = url,pxweb_query_list)
 folkmangd <- as.data.frame(px_data, column.name.type = "text", variable.value.type = "text")
 write.csv(folkmangd, "Data/df_folkmangd.csv", row.names = F)
 
+print('Nedladdning av "df_folkmangd.csv" har gått igenom')
 }
 
 
@@ -347,6 +359,7 @@ write.csv(folkmangd, "Data/df_folkmangd.csv", row.names = F)
   
   write.csv(df_deso, "Data/df_deso.csv", row.names = F)
   
+  print('Nedladdning av "df_deso.csv" har gått igenom')
 }
 
 
@@ -369,6 +382,8 @@ px_data <- pxweb_get(url = url,pxweb_query_list)
 # Convert to data.frame 
 df_fritidshus <- as.data.frame(px_data, column.name.type = "text", variable.value.type = "text")
 write.csv(df_fritidshus, "Data/df_fritidshus.csv", row.names = F)
+
+print('Nedladdning av "df_fritidshus.csv" har gått igenom')
 }
 
 
@@ -399,6 +414,7 @@ df_hyra$`Medianhyra i hyreslägenhet`[df_hyra$region=='Tierp' & df_hyra$år=='20
 
 write.csv(df_hyra, "Data/df_hyra.csv", row.names = F)
 
+print('Nedladdning av "df_hyra.csv" har gått igenom')
 }
 
 
@@ -441,6 +457,8 @@ write.csv(df_hyra, "Data/df_hyra.csv", row.names = F)
   
   # sparar data med variabler: region, unrikes/utrikes född, kön, ålder, tid , antal
   write.csv(df_folkmangdfram, "Data/df_folkmangdfram.csv", row.names = F)
+  
+  print('Nedladdning av "df_folkmangdfram.csv" har gått igenom')
 }
 
 
@@ -458,6 +476,8 @@ source("Script/search_kolada.R")
   df <- df %>% filter(year > 2004, title !="Fastighetspris småhus, tkr")
 
   write.csv(df, "Data/fastighetspris.csv", row.names = F)
+  
+  print('Nedladdning av "fastighetspris.csv" har gått igenom')
 }
 
 ####### Kolada trångboddhet #########
@@ -467,6 +487,8 @@ source("Script/search_kolada.R")
   df <- df %>% filter(gender != 'T')
   
   write.csv(df, "Data/trandboddhet.csv", row.names = F)
+  
+  print('Nedladdning av "trandboddhet.csv" har gått igenom')
 }
 
 
@@ -480,4 +502,6 @@ year <-2025
 url <- paste0('https://www.boverket.se/contentassets/8cac305f717845d39c4e471d761f176f/beraknat-bostadsbyggnadsbehov-',year,'-05-27.xlsx')
 
 download.file(url, destfile = 'Data/boverket_prognos.xlsx', mode = "wb")
+
+print('Nedladdning av "boverket_prognos.xlsx" har gått igenom')
 }

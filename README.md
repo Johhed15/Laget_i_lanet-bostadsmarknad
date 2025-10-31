@@ -30,3 +30,7 @@ Dessa bilder kommer behöva bytas ut om andra län ska skapa en rapport, då des
 Alla grafer är sparade och finns i mappen figurer, de flesta sparas genom att köra dess funktion från scriptet create_save_plots.R, vissa är sparade genom plotlys interaktiva funktion.
 
 För att rendera rapporten så behöver bilder från regionens mediabank laddas ned, dessa läses in i rapporterna med samma namn som de laddas ner med. Alla nedladdade bilder från mediabanken ska sparas i en mapp som heter 'Mediabank', i .gitignore så ställs det in så att dessa inte laddas upp på github utan sparas endast lokalt från nedladdningen på Region Uppsalas mediabank.
+
+# Paket
+
+Gamla eller uppdaterade versioner av paket kan göra så att funktioner i denna kod inte fungerar.
