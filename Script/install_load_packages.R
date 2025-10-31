@@ -31,7 +31,9 @@ install_and_load <- function() {
     'magick',
     'rKolada',
     'httr',
-    'jsonlite'
+    'jsonlite',
+    'svglite',
+    'rKolada'
   )
   
   # Installera och ladda CRAN-paket

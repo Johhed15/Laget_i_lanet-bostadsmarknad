@@ -1,12 +1,19 @@
 ########## Funktion för att söka och ladda data från Kolada ###########
-
-library(jsonlite)
-library(dplyr)
-library(httr)
-library(rKolada)
-
-kommunkod <- c("0330", "0331", "0360", "0380", "0381", "0382", "0305", "0319")
-# "Knivsta", "Heby", "Tierp", "Uppsala", "Enköping", "Östhammar", "Håbo", "Älvkarleby"
+{
+  source("Script/install_load_packages.R")
+  source("Script/settings.R")
+  
+  install_and_load()
+  settings <- get_settings()
+  
+  kommunkod <- settings$kommunkod
+  kommuner <- settings$kommuner
+  kommun_colors <- settings$kommun_colors
+  riket_narliggande <- settings$riket_narliggande
+  lan <- settings$lan
+  lanskod <- settings$lanskod
+  
+}
 
 # Funktion för sökning 
 search_kolada <- function(sok_ord = NULL){
