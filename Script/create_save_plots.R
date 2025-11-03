@@ -23,7 +23,7 @@ flerbostadsarea <- function(){
   # Läser in data
   df_bostadsarea <- read.csv('Data/df_bostadsarea.csv')
   
-  # vektor med lägenhetsstorlekar så x-axeln blir i rätt prdning
+  # vektor med lägenhetsstorlekar så x-axeln blir i rätt spridning
   ordning <- c("< 31 kvm", "31-40 kvm", "41-50 kvm", "51-60 kvm", "61-70 kvm",
                "71-80 kvm", "81-90 kvm", "91-100 kvm", "101-110 kvm",
                "111-120 kvm", "121-130 kvm", "131-140 kvm", "141-150 kvm",
@@ -47,7 +47,8 @@ flerbostadsarea <- function(){
     theme(axis.text.x = element_text(angle = 90),
           legend.position="none",
           text = element_text(family = "sourcesanspro", size = 14),
-          axis.title.y = element_text(angle = 0, vjust = 1, hjust = 0.5))
+          axis.title.y = element_text(angle = 0, vjust = 1, hjust = 0.5),
+          plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: SCB')
   
   # sparar som svg
   ggsave('Figurer/flerbostadsarea.svg',plot = p,device = "svg", width = 7, height = 5)
@@ -135,7 +136,8 @@ region_utv_upp <- function(){
       color = ""   # rubrik för linjen
     ) +theme_minimal() +theme(
       text = element_text(family = "sourcesanspro", size = 14),
-      axis.title.y = element_text(angle = 0, vjust = 1, hjust = 0.5))
+      axis.title.y = element_text(angle = 0, vjust = 1, hjust = 0.5),
+      plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: SCB')
   
   
   
@@ -219,7 +221,8 @@ kommun_utv_upp <- function(){
         fill = "Upplåtelseform",
         color = ""  # rubrik för linjen i legend
       ) +
-      theme_get()
+      theme_get() + theme(
+                          plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: SCB')
     
     p
   }
@@ -246,7 +249,8 @@ kommun_utv_upp <- function(){
 
 nybygg_region <- function(){
   # Läser in data 
-  nybyggda <- read.csv('Data/df_nybyggda.csv')
+  df_nybyggda <- read.csv('Data/df_nybyggda.csv')
+  
   df_befolkf <- read.csv('Data/df_befolkf.csv')
   
   # Summerar antal per år, efter 2012
@@ -332,9 +336,10 @@ nybygg_region <- function(){
     ) +
     theme_minimal() +theme(
       text = element_text(family = "sourcesanspro", size = 14),
-      axis.title.y = element_text(angle = 0, vjust = 1, hjust = 0.5))
+      axis.title.y = element_text(angle = 0, vjust = 1, hjust = 0.5),
+      plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: SCB')
   
-  
+  p
   ggsave(filename = 'Figurer/nybygg_region.svg', plot = p, width = 7, height = 6, device = "svg")
 }
 
@@ -343,7 +348,7 @@ nybygg_region <- function(){
 
 nybygg_kommun <- function(){
   # Läser in data 
-  nybyggda <- read.csv('Data/df_nybyggda.csv')
+  df_nybyggda <- read.csv('Data/df_nybyggda.csv')
   df_befolkf <- read.csv('Data/df_befolkf.csv')
   
   # Liknande kod som ovan men summerar per kommun
@@ -421,7 +426,8 @@ nybygg_kommun <- function(){
            x = "År", y = "Antal",
            fill = "",
            color = "" ) +
-      theme_get()
+      theme_get()+ theme(
+                         plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: SCB')
     
     p
   }
@@ -534,7 +540,8 @@ uppskatt_behov <- function(){
         labels = c("Nybyggda bostäder" = "Nybyggda bostäder")
       ) +
       labs(title = kommun_val, x = "År", y = "Antal", color = "", fill = "") +
-      theme_get()
+      theme_get()+ theme(
+                         plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: SCB, bearbetat av Region Uppsala')
     
     p
   }
@@ -553,6 +560,8 @@ uppskatt_behov <- function(){
   
   
 }
+
+
 ######### Deso upplåtelseform #######
 
 deso_upplat <- function(){
@@ -686,7 +695,13 @@ byggnadsperiod_region <- function(){
            barmode = "group",   # staplar bredvid varandra (alt. "stack")
            title = "Byggnadsperioder per hustyp år 2024",
            xaxis = list(title = "Byggnadsperiod"),
-           yaxis = list(title = "Antal")
+           yaxis = list(title = "Antal"),
+           annotations  = list(x=0,
+                               y=-0.2,
+                               text = 'Källa: SCB', 
+           showarrow = F, 
+           xref='paper', 
+           yref='paper')
     )
   
   # Tar bort knappar från plotly 
@@ -731,14 +746,12 @@ byggnadsperiod_kommun <- function(){
     "Övriga Hus" = "#6F787E"
   )
   
-  # skapar plot
-  fig <- plot_ly()
-  
   kommuner <- unique(df_byggnadsperiod_plot$region)
   
   # Lista som håller spårindex per kommun
   spår_per_kommun <- list()
   idx <- 1
+  
   fig <- plot_ly()
   ar_max <- max(as.integer(df_byggnadsperiod$år))
   
@@ -802,6 +815,17 @@ byggnadsperiod_kommun <- function(){
           xanchor = "right", yanchor = "top",
           showarrow = FALSE,
           font = list(size = 16)
+        ),
+        list(
+          text = "Källa: SCB",
+          x = 0,
+          y = -0.2,
+          xref = "paper",
+          yref = "paper",
+          xanchor = "left",
+          yanchor = "auto",
+          showarrow = FALSE,
+          font = list(size = 12)
         )
       )
     )
@@ -845,9 +869,10 @@ fritidshus_reg <- function(){
   # Skapar plot
   p <- ggplot(df_fritidshus_reg, aes(x=as.integer(år), y=Antal))+
     geom_line(color = '#B81867', linewidth = 2) + xlab('År') + 
-    ggtitle(paste('Totalt antal fritidshus i', lan ,'(1998-',ar_max, ')' ,sep=""))+
+    ggtitle(paste('Totalt antal fritidshus i ', lan ,'(1998-',ar_max, ')' ,sep=""))+
     theme_minimal()+ theme(
-      text = element_text(family = "sourcesanspro"))
+      text = element_text(family = "sourcesanspro"),
+      plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: SCB')
   
   # Sparar plot
   ggsave(filename = 'Figurer/fritidshus_region.svg', plot = p, width =  7, height = 5, device = "svg")
@@ -867,7 +892,9 @@ fritidshus_kommun <- function(){
     scale_x_continuous(
       breaks = seq(min(df_fritidshus$år), max(df_fritidshus$år), by = 7)
     ) +theme_minimal() + theme(legend.position="none",
-                               text = element_text(family = "sourcesanspro"))
+                               text = element_text(family = "sourcesanspro"),
+                               plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: SCB')
+  
   # Sparar plot
   ggsave(filename = 'Figurer/fritidshus_kommun.svg', plot = p, width =  7, height = 5, device = "svg")
 }
@@ -962,7 +989,13 @@ hyres_utveck <- function(){
         x = 1.05,
         y = 1,
         font = list(size = 12)
-      )
+      ),
+      annotations  = list(x=0,
+                          y=-0.15,
+                          text = 'Källa: SCB', 
+                          showarrow = F, 
+                          xref='paper', 
+                          yref='paper')
     )
   
   # Tar bort plotlyknappar
@@ -1081,7 +1114,8 @@ prognos_behov <- function(){
           "Uppskattat_behov" = "Uppskattat behov av nya bostäder" )) +
       labs(title = kommun_val, x = "År", y = "Antal", color = "") +
       theme_get() + theme(axis.text.x = element_text(angle=45, vjust = 0.9),
-                          legend.position = "bottom")
+                          legend.position = "bottom",
+                          plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: SCB, bearbetat av Region Uppsala')
     
     p
   }
@@ -1133,7 +1167,8 @@ prisfastighet <- function(){
       scale_color_manual(values=cols)+ 
      scale_x_continuous(breaks=seq(min(df$year), max(df$year),by=3 ))+
      theme(legend.position = 'bottom', 
-           axis.text.x = element_text(angle=45))
+           axis.text.x = element_text(angle=45),
+           plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: Kolada, SCB')
    
    # Sparar en plot per kommun
    filename <- paste0('Figurer/fastighetspris_',r ,'.svg')
@@ -1173,7 +1208,8 @@ trangbodd <- function(){
       labs(title=paste0('Trångboddhet i flerbostadshus i \n', r), 
            y='Andel (%)', x='', fill = '')+ylim(0,60)+
       scale_fill_manual(values=cols)+ 
-      theme(legend.position = 'bottom')
+      theme(legend.position = 'bottom',
+            plot.caption = element_text(hjust = 0))+ labs(caption = 'Källa: Kolada, SCB')
     
     # Sparar en plot per kommun
     filename <-  paste0('Figurer/trangboddhet_',r ,'.svg')
@@ -1181,7 +1217,6 @@ trangbodd <- function(){
   }
   
 }
-
 
 
 
